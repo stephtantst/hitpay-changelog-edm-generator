@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 1200px;
+    height: 750px;
+    background-color: #EBEBEB;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  /* Subtle grid lines */
+  body::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px);
+    background-size: 80px 80px;
+  }
+
+  /* + markers at corners and midpoints */
+  .plus {
+    position: absolute;
+    color: rgba(0,0,0,0.25);
+    font-size: 20px;
+    font-weight: 300;
+    line-height: 1;
+    user-select: none;
+    z-index: 1;
+  }
+  .plus.tl  { top: 24px;  left: 24px; }
+  .plus.tr  { top: 24px;  right: 24px; }
+  .plus.bl  { bottom: 24px; left: 24px; }
+  .plus.br  { bottom: 24px; right: 24px; }
+  .plus.tm  { top: 24px;  left: 50%; transform: translateX(-50%); }
+  .plus.bm  { bottom: 24px; left: 50%; transform: translateX(-50%); }
+  .plus.ml  { top: 50%; left: 24px; transform: translateY(-50%); }
+  .plus.mr  { top: 50%; right: 24px; transform: translateY(-50%); }
+
+  /* White card container */
+  .card {
+    position: relative;
+    z-index: 2;
+    background: white;
+    border-radius: 16px;
+    box-shadow:
+      0 2px 4px rgba(0,0,0,0.04),
+      0 8px 24px rgba(0,0,0,0.08),
+      0 24px 64px rgba(0,0,0,0.10);
+    padding: 20px;
+    max-width: 1060px;
+    max-height: 690px;
+    overflow: hidden;
+  }
+
+  .card img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    max-height: 650px;
+    object-fit: cover;
+    object-position: top;
+  }
+</style>
+</head>
+<body>
+  <span class="plus tl">+</span>
+  <span class="plus tr">+</span>
+  <span class="plus bl">+</span>
+  <span class="plus br">+</span>
+  <span class="plus tm">+</span>
+  <span class="plus bm">+</span>
+  <span class="plus ml">+</span>
+  <span class="plus mr">+</span>
+
+  <div class="card">
+    <img src="{{SCREENSHOT_PATH}}" alt="Product screenshot" />
+  </div>
+</body>
+</html>

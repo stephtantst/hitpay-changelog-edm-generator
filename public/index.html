@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HitPay EDM — Feature Selection</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f5f5f7;
+    color: #1a1a1a;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Top bar ── */
+  header {
+    background: #fff;
+    border-bottom: 1px solid #e5e5e5;
+    padding: 0 24px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  header img { height: 24px; }
+  header h1 { font-size: 15px; font-weight: 600; color: #1a1a1a; }
+  header .sep { color: #ccc; }
+  header .subtitle { font-size: 13px; color: #888; }
+
+  /* ── Layout ── */
+  .layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ── Sidebar ── */
+  aside {
+    width: 220px;
+    background: #fff;
+    border-right: 1px solid #e5e5e5;
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+  aside h2 {
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    padding: 16px 16px 8px;
+  }
+  .release-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    cursor: pointer;
+    border-radius: 0;
+    transition: background 0.1s;
+    border-left: 3px solid transparent;
+  }
+  .release-item:hover { background: #f5f5f7; }
+  .release-item.active {
+    background: #f0f0ff;
+    border-left-color: #5B5BD6;
+  }
+  .release-tag { font-size: 14px; font-weight: 600; }
+  .release-meta { font-size: 11px; color: #999; }
+  .release-badge {
+    font-size: 11px;
+    background: #5B5BD6;
+    color: white;
+    padding: 2px 7px;
+    border-radius: 100px;
+    font-weight: 500;
+  }
+  .release-badge.zero { background: #e5e5e5; color: #999; }
+
+  /* ── Main panel ── */
+  main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 32px;
+  }
+
+  .main-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .main-header h2 { font-size: 20px; font-weight: 700; }
+  .main-header .meta { font-size: 13px; color: #888; }
+  .actions { display: flex; gap: 8px; align-items: center; }
+
+  .btn {
+    padding: 7px 14px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+  }
+  .btn-ghost {
+    background: transparent;
+    border-color: #d5d5d5;
+    color: #444;
+  }
+  .btn-ghost:hover { background: #f5f5f7; }
+  .btn-primary {
+    background: #5B5BD6;
+    color: white;
+    border-color: #5B5BD6;
+  }
+  .btn-primary:hover { background: #4a4abf; }
+  .btn-primary:disabled { background: #b0b0e0; border-color: #b0b0e0; cursor: not-allowed; }
+  .btn-success {
+    background: #16a34a;
+    color: white;
+    border-color: #16a34a;
+  }
+  .btn-success:hover { background: #15803d; }
+
+  /* ── Feature groups ── */
+  .product-group { margin-bottom: 6px; border: 1px solid #e8e8e8; border-radius: 10px; overflow: hidden; }
+  .product-group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: #fafafa;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.1s;
+    gap: 8px;
+  }
+  .product-group-header:hover { background: #f0f0fb; }
+  .group-header-left { display: flex; align-items: center; gap: 10px; }
+  .group-chevron { font-size: 10px; color: #aaa; transition: transform 0.2s; display: inline-block; }
+  .group-chevron.open { transform: rotate(90deg); }
+  .product-area-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #5B5BD6;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .group-count { font-size: 11px; color: #bbb; }
+  .group-sel-count {
+    font-size: 11px;
+    font-weight: 600;
+    color: #999;
+    background: #f0f0f0;
+    padding: 2px 9px;
+    border-radius: 100px;
+    flex-shrink: 0;
+  }
+  .group-sel-count.has-sel { color: #5B5BD6; background: #ededfc; }
+  .product-group-body { padding: 8px; display: none; }
+  .product-group-body.open { display: block; }
+
+  /* ── Feature card ── */
+  .feature-card {
+    background: #fff;
+    border: 1.5px solid #e8e8e8;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .feature-card:hover { border-color: #c5c5f0; }
+  .feature-card.selected {
+    border-color: #5B5BD6;
+    background: #fafaff;
+    box-shadow: 0 0 0 3px rgba(91,91,214,0.08);
+  }
+  .feature-card input[type=checkbox] {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    accent-color: #5B5BD6;
+    cursor: pointer;
+  }
+  .feature-body { flex: 1; }
+  .feature-type-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-bottom: 5px;
+  }
+  .feature-type-badge.feature {
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+  .feature-type-badge.fix {
+    background: #fff3e0;
+    color: #e65100;
+  }
+
+  .feature-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+    line-height: 1.4;
+  }
+  .feature-desc {
+    font-size: 13px;
+    color: #555;
+    line-height: 1.5;
+  }
+  .feature-priority {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  .priority-btn {
+    background: none;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    width: 22px;
+    height: 20px;
+    cursor: pointer;
+    font-size: 10px;
+    color: #888;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.1s;
+  }
+  .priority-btn:hover { background: #f0f0f0; color: #333; }
+  .hide-btn {
+    background: none;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 10px;
+    color: #bbb;
+    cursor: pointer;
+    transition: all 0.1s;
+    white-space: nowrap;
+  }
+  .hide-btn:hover { border-color: #f87171; color: #ef4444; background: #fff5f5; }
+  .restore-btn {
+    background: none;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 10px;
+    color: #888;
+    cursor: pointer;
+    transition: all 0.1s;
+    white-space: nowrap;
+  }
+  .restore-btn:hover { border-color: #5B5BD6; color: #5B5BD6; background: #fafaff; }
+  .feature-card.is-hidden { opacity: 0.55; background: #fafafa; }
+  .hidden-group-header { background: #f5f5f5; }
+
+  /* ── Image drop zone ── */
+  .feature-img-drop {
+    width: 68px;
+    height: 68px;
+    flex-shrink: 0;
+    border: 1.5px dashed #d5d5d5;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    position: relative;
+    overflow: hidden;
+    font-size: 10px;
+    color: #bbb;
+    gap: 3px;
+    align-self: center;
+  }
+  .feature-img-drop:hover { border-color: #5B5BD6; color: #5B5BD6; background: #fafaff; }
+  .feature-img-drop.drag-over { border-color: #5B5BD6; background: #f0f0ff; color: #5B5BD6; }
+  .feature-img-drop.has-image { border-style: solid; border-color: #d5d5d5; padding: 0; }
+  .feature-img-drop.has-image img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; display: block; }
+  .drop-remove {
+    position: absolute;
+    top: 2px; right: 2px;
+    background: rgba(0,0,0,0.55);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 16px; height: 16px;
+    font-size: 9px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.15s;
+    line-height: 1;
+    padding: 0;
+  }
+  .feature-img-drop.has-image:hover .drop-remove { opacity: 1; }
+
+  /* ── Selection bar ── */
+  .selection-bar {
+    position: sticky;
+    bottom: 0;
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: blur(8px);
+    border-top: 1px solid #e5e5e5;
+    padding: 12px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    z-index: 10;
+  }
+  .selection-count { font-size: 13px; color: #555; }
+  .selection-count strong { color: #1a1a1a; }
+
+  /* ── Empty state ── */
+  .empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 60%;
+    gap: 12px;
+    color: #aaa;
+  }
+  .empty-icon { font-size: 40px; }
+  .empty p { font-size: 14px; }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #1a1a1a;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    opacity: 0;
+    transition: all 0.3s;
+    pointer-events: none;
+    z-index: 100;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #toast.success { background: #16a34a; }
+  #toast.error { background: #dc2626; }
+
+  .loading { text-align: center; color: #aaa; padding: 40px; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>HitPay EDM</h1>
+  <span class="sep">·</span>
+  <span class="subtitle">Feature Selection</span>
+</header>
+
+<div class="layout">
+  <aside>
+    <h2>Releases</h2>
+    <div id="release-list"><div class="loading">Loading...</div></div>
+  </aside>
+
+  <main id="main-panel">
+    <div class="empty">
+      <div class="empty-icon">📋</div>
+      <p>Select a release from the left to review its features</p>
+    </div>
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+let currentTag = null;
+let allFeatures = [];
+let activeFilter = 'all';
+const expandedGroups = new Set();
+
+function safeId(area) {
+  return area.replace(/[^a-zA-Z0-9]/g, '_');
+}
+
+function toggleGroup(area) {
+  const id = safeId(area);
+  const body = document.getElementById(`gbody-${id}`);
+  const chev = document.getElementById(`gchev-${id}`);
+  if (!body) return;
+  if (expandedGroups.has(area)) {
+    expandedGroups.delete(area);
+    body.classList.remove('open');
+    chev.classList.remove('open');
+  } else {
+    expandedGroups.add(area);
+    body.classList.add('open');
+    chev.classList.add('open');
+  }
+}
+
+function updateGroupCounts() {
+  const counts = {};
+  for (const f of allFeatures.filter(f => !f.is_hidden)) {
+    if (!counts[f.product_area]) counts[f.product_area] = { total: 0, sel: 0 };
+    counts[f.product_area].total++;
+    if (f.is_selected) counts[f.product_area].sel++;
+  }
+  for (const [area, c] of Object.entries(counts)) {
+    const el = document.getElementById(`gsel-${safeId(area)}`);
+    if (el) {
+      el.textContent = `${c.sel}/${c.total}`;
+      el.className = `group-sel-count${c.sel > 0 ? ' has-sel' : ''}`;
+    }
+  }
+}
+
+async function hideSelected() {
+  const toHide = allFeatures.filter(x => x.is_selected && !x.is_hidden);
+  await Promise.all(toHide.map(f =>
+    fetch(`/api/features/${f.id}/hidden`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_hidden: 1 }),
+    }).then(() => { f.is_hidden = 1; f.is_selected = 0; })
+  ));
+  // Deselect all on server
+  await fetch(`/api/releases/${currentTag}/deselect-all`, { method: 'POST' });
+  renderFeatures();
+  const selected = allFeatures.filter(x => x.is_selected).length;
+  document.querySelector('.meta').textContent = `${allFeatures.length} features identified · ${selected} selected`;
+  renderSelectionBar(selected, allFeatures.length);
+  refreshSidebarBadge(currentTag, selected);
+  showToast(`${toHide.length} item${toHide.length !== 1 ? 's' : ''} hidden`, 'success');
+}
+
+async function hideFeature(id) {
+  const f = allFeatures.find(x => x.id === id);
+  if (!f) return;
+  await fetch(`/api/features/${id}/hidden`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ is_hidden: 1 }),
+  });
+  f.is_hidden = 1;
+  if (f.is_selected) {
+    f.is_selected = 0;
+    await fetch(`/api/features/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_selected: 0 }),
+    });
+  }
+  renderFeatures();
+  const selected = allFeatures.filter(x => x.is_selected).length;
+  document.querySelector('.meta').textContent = `${allFeatures.length} features identified · ${selected} selected`;
+  renderSelectionBar(selected, allFeatures.length);
+  refreshSidebarBadge(currentTag, selected);
+}
+
+async function restoreFeature(id) {
+  const f = allFeatures.find(x => x.id === id);
+  if (!f) return;
+  await fetch(`/api/features/${id}/hidden`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ is_hidden: 0 }),
+  });
+  f.is_hidden = 0;
+  renderFeatures();
+}
+
+function setFilter(type) {
+  activeFilter = type;
+  ['all', 'feature', 'fix'].forEach(t => {
+    const btn = document.getElementById(`filter-${t}`);
+    if (btn) btn.style.cssText = t === type ? 'border-color:#5B5BD6;color:#5B5BD6;' : '';
+  });
+  renderFeatures();
+}
+
+function renderFeatures() {
+  const visible = allFeatures.filter(f => !f.is_hidden);
+  const hidden = allFeatures.filter(f => f.is_hidden);
+
+  const filtered = activeFilter === 'all' ? visible : visible.filter(f => inferType(f) === activeFilter);
+  const grouped = {};
+  for (const f of filtered) {
+    if (!grouped[f.product_area]) grouped[f.product_area] = [];
+    grouped[f.product_area].push(f);
+  }
+
+  // selection counts per area (visible only)
+  const selCounts = {}, totCounts = {};
+  for (const f of visible) {
+    totCounts[f.product_area] = (totCounts[f.product_area] || 0) + 1;
+    if (f.is_selected) selCounts[f.product_area] = (selCounts[f.product_area] || 0) + 1;
+  }
+
+  const areasHtml = Object.entries(grouped).map(([area, feats]) => {
+    const id = safeId(area);
+    const isOpen = expandedGroups.has(area);
+    const sel = selCounts[area] || 0;
+    const tot = totCounts[area] || feats.length;
+    const safeArea = area.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    return `
+      <div class="product-group">
+        <div class="product-group-header" onclick="toggleGroup('${safeArea}')">
+          <div class="group-header-left">
+            <span class="group-chevron${isOpen ? ' open' : ''}" id="gchev-${id}">&#9654;</span>
+            <span class="product-area-label">${escHtml(area)}</span>
+            <span class="group-count">${feats.length} item${feats.length !== 1 ? 's' : ''}</span>
+          </div>
+          <span class="group-sel-count${sel > 0 ? ' has-sel' : ''}" id="gsel-${id}">${sel}/${tot}</span>
+        </div>
+        <div class="product-group-body${isOpen ? ' open' : ''}" id="gbody-${id}">
+          ${feats.map(f => featureCard(f)).join('')}
+        </div>
+      </div>
+    `;
+  }).join('') || '<div style="padding:40px;text-align:center;color:#aaa;">No items match this filter.</div>';
+
+  // Hidden items group (always at bottom, always all hidden regardless of filter)
+  let hiddenHtml = '';
+  if (hidden.length > 0) {
+    const hid = safeId('__hidden__');
+    const isOpen = expandedGroups.has('__hidden__');
+    hiddenHtml = `
+      <div class="product-group" style="margin-top:16px;">
+        <div class="product-group-header hidden-group-header" onclick="toggleGroup('__hidden__')">
+          <div class="group-header-left">
+            <span class="group-chevron${isOpen ? ' open' : ''}" id="gchev-${hid}">&#9654;</span>
+            <span class="product-area-label" style="color:#999;">Hidden Items</span>
+            <span class="group-count">${hidden.length} item${hidden.length !== 1 ? 's' : ''}</span>
+          </div>
+        </div>
+        <div class="product-group-body${isOpen ? ' open' : ''}" id="gbody-${hid}">
+          ${hidden.map(f => hiddenCard(f)).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  document.getElementById('features-list').innerHTML = areasHtml + hiddenHtml;
+}
+
+// ── Load releases ──────────────────────────────────────
+async function loadReleases() {
+  const res = await fetch('/api/releases');
+  const releases = await res.json();
+  const el = document.getElementById('release-list');
+
+  if (!releases.length) {
+    el.innerHTML = '<div style="padding:16px;font-size:13px;color:#aaa;">No releases found.<br/>Run:<br/><code style="font-size:11px">npm run analyze</code></div>';
+    return;
+  }
+
+  el.innerHTML = releases.map(r => `
+    <div class="release-item" data-tag="${r.tag}" onclick="loadRelease('${r.tag}')">
+      <div>
+        <div class="release-tag">${r.tag}</div>
+        <div class="release-meta">${fmtDate(r.published_at)}</div>
+      </div>
+      <span class="release-badge ${r.selected_count == 0 ? 'zero' : ''}">${r.selected_count || 0}</span>
+    </div>
+  `).join('');
+}
+
+// ── Load features for a release ───────────────────────
+async function loadRelease(tag) {
+  currentTag = tag;
+
+  // Update sidebar active state
+  document.querySelectorAll('.release-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.tag === tag);
+  });
+
+  const panel = document.getElementById('main-panel');
+  panel.innerHTML = '<div class="loading">Loading features...</div>';
+
+  const res = await fetch(`/api/releases/${tag}/features`);
+  const { features } = await res.json();
+  allFeatures = features;
+  activeFilter = 'all';
+  expandedGroups.clear();
+
+  const selectedCount = features.filter(f => f.is_selected).length;
+
+  panel.innerHTML = `
+    <div class="main-header">
+      <div>
+        <h2>${tag}</h2>
+        <div class="meta">${features.length} features identified · ${selectedCount} selected</div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-ghost" id="filter-all" onclick="setFilter('all')" style="border-color:#5B5BD6;color:#5B5BD6;">All</button>
+        <button class="btn btn-ghost" id="filter-feature" onclick="setFilter('feature')">Features</button>
+        <button class="btn btn-ghost" id="filter-fix" onclick="setFilter('fix')">Fixes</button>
+        <button class="btn btn-ghost" onclick="selectAll()">Select all</button>
+        <button class="btn btn-ghost" onclick="deselectAll()">Clear all</button>
+      </div>
+    </div>
+    <div id="features-list"></div>
+    <div style="height:80px"></div>
+  `;
+  renderFeatures();
+
+  renderSelectionBar(selectedCount, features.length);
+}
+
+function inferType(f) {
+  const text = (f.title + ' ' + f.description).toLowerCase();
+  return /\b(fix(es|ed)?|bug|patch|resolv|correct(ed)?|issu|broken|crash|error|revert)\b/.test(text) ? 'fix' : 'feature';
+}
+
+function featureCard(f) {
+  const type = inferType(f);
+  const imgZoneInner = f.has_image
+    ? `<img src="/api/features/${f.id}/image?t=${Date.now()}" alt="" /><button class="drop-remove" onclick="event.stopPropagation();removeImage(${f.id})" title="Remove">✕</button>`
+    : `<span style="font-size:18px;line-height:1;">+</span><span>image</span>`;
+  return `
+    <div class="feature-card ${f.is_selected ? 'selected' : ''}" id="card-${f.id}" onclick="toggleFeature(${f.id})">
+      <input type="checkbox" ${f.is_selected ? 'checked' : ''} onclick="event.stopPropagation(); toggleFeature(${f.id})" />
+      <div class="feature-body">
+        <div><span class="feature-type-badge ${type}">${type === 'fix' ? 'Fix' : 'Feature'}</span></div>
+        <div class="feature-title">${escHtml(f.title)}</div>
+        <div class="feature-desc">${escHtml(f.description)}</div>
+      </div>
+      <div class="feature-img-drop ${f.has_image ? 'has-image' : ''}" id="imgdrop-${f.id}"
+        ondragover="event.preventDefault();event.stopPropagation();document.getElementById('imgdrop-${f.id}').classList.add('drag-over')"
+        ondragleave="document.getElementById('imgdrop-${f.id}').classList.remove('drag-over')"
+        ondrop="event.stopPropagation();handleImageDrop(event,${f.id})"
+        onclick="event.stopPropagation();document.getElementById('imgfile-${f.id}').click()"
+        title="Drop image or click to upload">
+        ${imgZoneInner}
+        <input type="file" id="imgfile-${f.id}" accept="image/*" style="display:none" onchange="handleImageFile(event,${f.id})" />
+      </div>
+      <div class="feature-priority">
+        <button class="priority-btn" title="Move up" onclick="event.stopPropagation(); movePriority(${f.id}, -1)">▲</button>
+        <button class="priority-btn" title="Move down" onclick="event.stopPropagation(); movePriority(${f.id}, 1)">▼</button>
+        <button class="hide-btn" onclick="event.stopPropagation(); hideFeature(${f.id})">Hide</button>
+      </div>
+    </div>
+  `;
+}
+
+function hiddenCard(f) {
+  const type = inferType(f);
+  return `
+    <div class="feature-card is-hidden" id="card-${f.id}">
+      <div class="feature-body">
+        <div><span class="feature-type-badge ${type}">${type === 'fix' ? 'Fix' : 'Feature'}</span></div>
+        <div class="feature-title">${escHtml(f.title)}</div>
+        <div class="feature-desc">${escHtml(f.description)}</div>
+      </div>
+      <div class="feature-priority">
+        <button class="restore-btn" onclick="restoreFeature(${f.id})">Restore</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderSelectionBar(selected, total) {
+  document.querySelector('.selection-bar')?.remove();
+  const bar = document.createElement('div');
+  bar.className = 'selection-bar';
+  bar.innerHTML = `
+    <span class="selection-count"><strong>${selected}</strong> of ${total} features selected (top 5 shown in email)</span>
+    <div style="display:flex;gap:8px;align-items:center;">
+      ${selected > 0 ? `<button class="btn btn-ghost" style="border-color:#fca5a5;color:#ef4444;" onclick="hideSelected()">Hide selected (${selected})</button>` : ''}
+      <button class="btn btn-success" ${selected === 0 ? 'disabled' : ''} onclick="generateEmail()">
+        ⚡ Generate ZIP
+      </button>
+    </div>
+  `;
+  document.getElementById('main-panel').appendChild(bar);
+}
+
+// ── Toggle selection ───────────────────────────────────
+async function toggleFeature(id) {
+  const f = allFeatures.find(x => x.id === id);
+  if (!f) return;
+  const newVal = f.is_selected ? 0 : 1;
+  await fetch(`/api/features/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ is_selected: newVal }),
+  });
+  f.is_selected = newVal;
+  document.getElementById(`card-${id}`).classList.toggle('selected', !!newVal);
+  document.getElementById(`card-${id}`).querySelector('input').checked = !!newVal;
+
+  const selected = allFeatures.filter(x => x.is_selected).length;
+  document.querySelector('.meta').textContent = `${allFeatures.length} features identified · ${selected} selected`;
+  updateGroupCounts();
+  renderSelectionBar(selected, allFeatures.length);
+  refreshSidebarBadge(currentTag, selected);
+}
+
+async function movePriority(id, direction) {
+  const f = allFeatures.find(x => x.id === id);
+  if (!f) return;
+  const newPriority = Math.max(0, f.priority + direction);
+  await fetch(`/api/features/${id}/priority`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ priority: newPriority }),
+  });
+  f.priority = newPriority;
+  showToast('Priority updated');
+}
+
+async function selectAll() {
+  await fetch(`/api/releases/${currentTag}/select-all`, { method: 'POST' });
+  loadRelease(currentTag);
+}
+
+async function deselectAll() {
+  await fetch(`/api/releases/${currentTag}/deselect-all`, { method: 'POST' });
+  loadRelease(currentTag);
+}
+
+function refreshSidebarBadge(tag, count) {
+  const item = document.querySelector(`.release-item[data-tag="${tag}"] .release-badge`);
+  if (item) {
+    item.textContent = count;
+    item.className = `release-badge ${count === 0 ? 'zero' : ''}`;
+  }
+}
+
+// ── Generate ZIP ───────────────────────────────────────
+async function generateEmail() {
+  const btn = document.querySelector('.btn-success');
+  btn.disabled = true;
+  btn.textContent = '⏳ Generating...';
+
+  try {
+    const res = await fetch(`/api/releases/${currentTag}/generate`, { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Generation failed');
+    const filename = data.zipPath.split('/').pop();
+    btn.textContent = '✓ Generated';
+    btn.disabled = true;
+    // Replace button with download link
+    const dl = document.createElement('a');
+    dl.href = data.downloadUrl;
+    dl.download = filename;
+    dl.className = 'btn btn-success';
+    dl.style.textDecoration = 'none';
+    dl.textContent = `⬇ Download ${filename}`;
+    btn.replaceWith(dl);
+  } catch (err) {
+    showToast(err.message, 'error');
+    btn.textContent = '⚡ Generate ZIP';
+    btn.disabled = false;
+  }
+}
+
+// ── Image upload ───────────────────────────────────────
+function handleImageDrop(event, featureId) {
+  event.preventDefault();
+  const zone = document.getElementById(`imgdrop-${featureId}`);
+  zone.classList.remove('drag-over');
+  const file = event.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) uploadImage(featureId, file);
+}
+
+function handleImageFile(event, featureId) {
+  const file = event.target.files[0];
+  if (file) uploadImage(featureId, file);
+}
+
+function uploadImage(featureId, file) {
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const dataUrl = e.target.result;
+    const [header, data] = dataUrl.split(',');
+    const mime = header.match(/:(.*?);/)[1];
+    const zone = document.getElementById(`imgdrop-${featureId}`);
+    zone.innerHTML = `<span style="font-size:10px;color:#aaa;">Uploading…</span>`;
+    const res = await fetch(`/api/features/${featureId}/image`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ data, mime }),
+    });
+    if (res.ok) {
+      zone.classList.add('has-image');
+      zone.innerHTML = `<img src="${dataUrl}" alt="" /><button class="drop-remove" onclick="event.stopPropagation();removeImage(${featureId})" title="Remove">✕</button><input type="file" id="imgfile-${featureId}" accept="image/*" style="display:none" onchange="handleImageFile(event,${featureId})" />`;
+      // update in allFeatures
+      const f = allFeatures.find(x => x.id === featureId);
+      if (f) f.has_image = true;
+      showToast('Image saved', 'success');
+    } else {
+      zone.innerHTML = `<span style="font-size:10px;color:#e00;">Failed</span>`;
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+async function removeImage(featureId) {
+  await fetch(`/api/features/${featureId}/image`, { method: 'DELETE' });
+  const zone = document.getElementById(`imgdrop-${featureId}`);
+  zone.classList.remove('has-image');
+  zone.innerHTML = `<span style="font-size:18px;line-height:1;">+</span><span>image</span><input type="file" id="imgfile-${featureId}" accept="image/*" style="display:none" onchange="handleImageFile(event,${featureId})" />`;
+  zone.onclick = (e) => { e.stopPropagation(); document.getElementById(`imgfile-${featureId}`).click(); };
+  const f = allFeatures.find(x => x.id === featureId);
+  if (f) f.has_image = false;
+  showToast('Image removed');
+}
+
+// ── Utils ──────────────────────────────────────────────
+function fmtDate(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+let toastTimer;
+function showToast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `show ${type}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.className = '', 3000);
+}
+
+// ── Init ───────────────────────────────────────────────
+loadReleases();
+</script>
+</body>
+</html>

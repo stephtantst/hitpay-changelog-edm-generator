@@ -1,0 +1,37 @@
+{
+  "name": "hitpay-changelog-edm-generator",
+  "version": "1.0.0",
+  "description": "Automated changelog EDM generator for HitPay merchant emails",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "generate": "ts-node src/index.ts",
+    "generate:tag": "ts-node src/generate-for-tag.ts",
+    "mockup": "ts-node src/mockup-generator.ts",
+    "preview": "ts-node src/index.ts --dry-run",
+    "analyze": "ts-node src/analyze-releases.ts",
+    "server": "ts-node src/server.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.36.0",
+    "@types/archiver": "^7.0.0",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/express": "^5.0.6",
+    "@types/jszip": "^3.4.0",
+    "archiver": "^8.0.0",
+    "better-sqlite3": "^12.10.0",
+    "dotenv": "^16.4.0",
+    "express": "^5.2.1",
+    "handlebars": "^4.7.8",
+    "jszip": "^3.10.1",
+    "mjml": "^4.15.3",
+    "puppeteer": "^22.0.0"
+  },
+  "devDependencies": {
+    "@types/handlebars": "^4.1.0",
+    "@types/mjml": "^4.7.4",
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.0"
+  }
+}

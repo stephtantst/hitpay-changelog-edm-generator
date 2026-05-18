@@ -1,0 +1,52 @@
+name: Generate & Send Changelog EDM
+
+on:
+  schedule:
+    - cron: '0 * * * *'   # run every hour
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run — generate HTML but do not send email'
+        type: boolean
+        default: true
+
+jobs:
+  generate-edm:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # needed to commit state/last_sent.json
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate & Send Changelog EDM
+        run: npm run generate
+        env:
+          GITHUB_TOKEN: ${{ secrets.HITPAY_CORE_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          LOOPS_API_KEY: ${{ secrets.LOOPS_API_KEY }}
+          LOOPS_TRANSACTIONAL_ID: ${{ secrets.LOOPS_TRANSACTIONAL_ID }}
+          DRY_RUN: ${{ inputs.dry_run || 'false' }}
+
+      - name: Upload generated email as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog-email-${{ github.run_number }}
+          path: output/
+
+      - name: Commit updated state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add state/last_sent.json
+          git diff --cached --quiet || git commit -m "chore: update last sent release state [skip ci]"
+          git push
