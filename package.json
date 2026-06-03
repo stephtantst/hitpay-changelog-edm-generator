@@ -10,6 +10,7 @@
     "mockup": "ts-node src/mockup-generator.ts",
     "preview": "ts-node src/index.ts --dry-run",
     "analyze": "ts-node src/analyze-releases.ts",
+    "enrich": "ts-node src/enrich-descriptions.ts",
     "server": "ts-node src/server.ts"
   },
   "dependencies": {

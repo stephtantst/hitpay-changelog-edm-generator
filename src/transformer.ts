@@ -4,7 +4,7 @@ export interface TransformedContent {
   subject: string;
   preview_text: string;
   intro: string;
-  features: Array<{ tag: string; title: string; description: string }>;
+  features: Array<{ tag: string; title: string; description: string; flags?: string; docsUrl?: string }>;
 }
 
 const client = new Anthropic();

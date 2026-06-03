@@ -11,15 +11,93 @@ import { generateMockup } from './mockup-generator';
 import { generateMjmlForZip, compileMjmlToHtml } from './email-generator';
 import { generateZip, inlineImagesInHtml } from './zip-generator';
 import { queries } from './db';
+import { matchDocsUrl } from './docs-matcher';
 
 interface SelectedFeature {
   id: number;
+  release_tag?: string;
   product_area: string;
   title: string;
   description: string;
+  docs_url?: string | null;
 }
 
 const SCREENSHOTS_DIR = path.join(__dirname, '../screenshots');
+
+const COUNTRY_FLAGS: Record<string, string> = {
+  'singapore': '🇸🇬',
+  'malaysia': '🇲🇾',
+  'hong kong': '🇭🇰',
+  'australia': '🇦🇺',
+  'united kingdom': '🇬🇧',
+  ' uk ': '🇬🇧',
+  'indonesia': '🇮🇩',
+  'thailand': '🇹🇭',
+  'philippines': '🇵🇭',
+  'india': '🇮🇳',
+};
+
+const COUNTRY_ABBR: Record<string, string> = {
+  'singapore': 'SG',
+  'malaysia': 'MY',
+  'hong kong': 'HK',
+  'australia': 'AU',
+  'indonesia': 'ID',
+  'thailand': 'TH',
+  'philippines': 'PH',
+  'india': 'IN',
+  'united kingdom': 'UK',
+  ' uk ': 'UK',
+};
+
+// Strip generic filler so titles read crisply in a preview snippet
+const PREVIEW_STRIP = /\b(new|support for|support|powered by|integration for|available for|available in|feature|update|enhancement)\b/gi;
+
+function buildPreviewText(features: SelectedFeature[]): string {
+  const snippets = features.slice(0, 4).map(f => {
+    let short = f.title.replace(PREVIEW_STRIP, '');
+
+    // Strip full country name from the title and replace with abbreviation only.
+    // e.g. "Tap to Pay for Malaysia" → "Tap to Pay in MY" (never "Malaysia in MY")
+    const fullText = (f.title + ' ' + f.description).toLowerCase();
+    let countryAbbr: string | null = null;
+    for (const [kw, abbr] of Object.entries(COUNTRY_ABBR)) {
+      const keyword = kw.trim();
+      if (fullText.includes(keyword)) {
+        short = short.replace(new RegExp(`\\b${keyword}\\b`, 'gi'), '');
+        countryAbbr = abbr;
+        break;
+      }
+    }
+
+    short = short
+      .replace(/\s{2,}/g, ' ')
+      .trim()
+      .replace(/\s+(for|in|on|to|at|of|and)$/i, '')
+      .trim();
+
+    if (countryAbbr) short += ` in ${countryAbbr}`;
+
+    return short;
+  });
+
+  // Join and cap at 90 chars (Gmail/Apple Mail sweet spot)
+  const joined = snippets.join(', ');
+  return joined.length > 90 ? joined.slice(0, 87).trimEnd() + '…' : joined;
+}
+
+function detectFlags(title: string, description: string): string {
+  const text = (title + ' ' + description).toLowerCase();
+  const seen = new Set<string>();
+  const flags: string[] = [];
+  for (const [keyword, flag] of Object.entries(COUNTRY_FLAGS)) {
+    if (text.includes(keyword) && !seen.has(flag)) {
+      seen.add(flag);
+      flags.push(flag);
+    }
+  }
+  return flags.join(' ');
+}
 
 function findFeatureImage(tag: string, featureId: number): string | null {
   const dir = path.join(SCREENSHOTS_DIR, tag);
@@ -30,29 +108,32 @@ function findFeatureImage(tag: string, featureId: number): string | null {
   return null;
 }
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-}
 
 export async function generateFromSelections(
   tag: string,
-  selected: SelectedFeature[]
+  selected: SelectedFeature[],
+  options?: { label?: string }
 ): Promise<string> {
-  const release = queries.releaseExists.get(tag) as { tag: string; published_at?: string } | undefined;
-  const publishedAt = (release as { published_at?: string })?.published_at ?? new Date().toISOString();
+  const label = options?.label ?? tag;
 
-  // Use selected features directly (up to 5 for email template)
-  const features = selected.slice(0, 5).map(f => ({
-    tag: f.product_area,
-    title: f.title,
-    description: f.description,
-  }));
+  // Use all selected features
+  const features = selected.map(f => {
+    const flags = detectFlags(f.title, f.description);
+    const docsUrl = f.docs_url || matchDocsUrl(f.title, f.description);
+    return {
+      tag: f.product_area,
+      title: f.title,
+      description: f.description,
+      ...(flags ? { flags } : {}),
+      ...(docsUrl ? { docsUrl } : {}),
+    };
+  });
 
   const mockupAbsolutePaths: string[] = [];
   const mockupRelativePaths: string[] = [];
 
   for (let i = 0; i < features.length; i++) {
-    const imgPath = findFeatureImage(tag, selected[i].id);
+    const imgPath = findFeatureImage(selected[i].release_tag ?? tag, selected[i].id);
     if (imgPath) {
       const mockupPath = await generateMockup(imgPath, `mockup-${tag}-${i + 1}`);
       mockupAbsolutePaths.push(mockupPath);
@@ -66,15 +147,15 @@ export async function generateFromSelections(
 
   // Build a subject from the top features
   const topTitles = features.slice(0, 2).map(f => f.title).join(', ');
-  const subject = `${topTitles} & more — ${tag}`;
+  const subject = `${topTitles} & more — ${label}`;
 
   const mjml = generateMjmlForZip({
     subject,
-    preview_text: `What's new in HitPay ${tag}`,
-    intro: `Here's what we shipped in ${tag} — ${formatDate(publishedAt)}.`,
+    preview_text: buildPreviewText(selected),
+    intro: `Here's what we shipped in ${label}.`,
     features,
     tag,
-    date: formatDate(publishedAt),
+    date: label,
     unsubscribe_url: '{unsubscribe_link}',
     mockupImages: mockupRelativePaths,
   });

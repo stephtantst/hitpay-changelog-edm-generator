@@ -26,8 +26,11 @@ db.exec(`
   );
 `);
 
-// Migration: add is_hidden if not present
+// Migrations
 try { db.exec(`ALTER TABLE features ADD COLUMN is_hidden INTEGER NOT NULL DEFAULT 0`); } catch { /* already exists */ }
+try { db.exec(`ALTER TABLE features ADD COLUMN docs_url TEXT`); } catch { /* already exists */ }
+try { db.exec(`ALTER TABLE features ADD COLUMN newsletter_month TEXT`); } catch { /* already exists */ }
+try { db.exec(`ALTER TABLE features ADD COLUMN newsletter_priority INTEGER NOT NULL DEFAULT 0`); } catch { /* already exists */ }
 
 export default db;
 
@@ -40,6 +43,9 @@ export interface Feature {
   is_selected: number;
   priority: number;
   is_hidden: number;
+  docs_url: string | null;
+  newsletter_month: string | null;
+  newsletter_priority: number;
 }
 
 export interface Release {
@@ -98,4 +104,70 @@ export const queries = {
   releaseExists: db.prepare(`SELECT tag FROM releases WHERE tag = ?`),
 
   getFeatureById: db.prepare(`SELECT * FROM features WHERE id = ?`),
+
+  getMonths: db.prepare(`
+    SELECT
+      strftime('%Y-%m', r.published_at) as month_key,
+      COUNT(DISTINCT r.tag) as release_count,
+      COUNT(f.id) as feature_count,
+      COALESCE(SUM(f.is_selected), 0) as selected_count
+    FROM releases r
+    LEFT JOIN features f ON f.release_tag = r.tag
+    GROUP BY month_key
+    ORDER BY month_key DESC
+  `),
+
+  getFeaturesByMonth: db.prepare(`
+    SELECT f.* FROM features f
+    JOIN releases r ON r.tag = f.release_tag
+    WHERE strftime('%Y-%m', r.published_at) = ?
+    ORDER BY r.published_at DESC, f.product_area, f.priority, f.id
+  `),
+
+  getSelectedFeaturesByMonth: db.prepare(`
+    SELECT f.* FROM features f
+    JOIN releases r ON r.tag = f.release_tag
+    WHERE strftime('%Y-%m', r.published_at) = ? AND f.is_selected = 1 AND f.is_hidden = 0
+    ORDER BY f.priority, f.id
+  `),
+
+  selectAllByMonth: db.prepare(`
+    UPDATE features SET is_selected = 1
+    WHERE release_tag IN (SELECT tag FROM releases WHERE strftime('%Y-%m', published_at) = ?)
+    AND is_hidden = 0
+  `),
+
+  deselectAllByMonth: db.prepare(`
+    UPDATE features SET is_selected = 0
+    WHERE release_tag IN (SELECT tag FROM releases WHERE strftime('%Y-%m', published_at) = ?)
+  `),
+
+  // Newsletter queries
+  getNewsletterMonths: db.prepare(`
+    SELECT
+      newsletter_month,
+      COUNT(*) as feature_count
+    FROM features
+    WHERE newsletter_month IS NOT NULL
+    GROUP BY newsletter_month
+    ORDER BY newsletter_month DESC
+  `),
+
+  getFeaturesByNewsletterMonth: db.prepare(`
+    SELECT * FROM features
+    WHERE newsletter_month = ?
+    ORDER BY newsletter_priority, id
+  `),
+
+  assignFeatureToNewsletter: db.prepare(`
+    UPDATE features SET newsletter_month = @newsletter_month WHERE id = @id
+  `),
+
+  unassignFeatureFromNewsletter: db.prepare(`
+    UPDATE features SET newsletter_month = NULL WHERE id = @id
+  `),
+
+  updateNewsletterPriority: db.prepare(`
+    UPDATE features SET newsletter_priority = @priority WHERE id = @id
+  `),
 };

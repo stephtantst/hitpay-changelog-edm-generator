@@ -18,54 +18,34 @@ Subject : ${subject}
 
 CONTENTS
 --------
-index.html   -- Compiled, self-contained HTML (all images embedded)
-index.mjml   -- Source MJML (for reference / future edits)
+index.mjml      -- Source MJML (upload this ZIP to Loops)
+index.html      -- Local preview (open in browser after extracting)
+img/            -- All images (Loops hosts these automatically)
 
 HOW TO UPLOAD TO LOOPS
 ----------------------
-1. Open index.html in a browser to preview the email
-2. In Loops: Templates > New Template > Custom HTML > paste the full contents of index.html
+1. Extract this ZIP and open index.html in a browser to preview
+2. In Loops: Templates > New Template > Upload MJML > upload this ZIP file
+   Loops will host all images in img/ on its CDN automatically.
 
 NOTES
 -----
-- All images are embedded as base64 — no CDN or external hosting needed
-- {{unsubscribeUrl}} is replaced by Loops at send time
+- {unsubscribe_link} is replaced by Loops at send time
 `;
 }
 
-function toDataUri(filePath: string): string {
-  const ext = path.extname(filePath).slice(1).toLowerCase();
-  const mime = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : 'image/png';
-  const b64 = fs.readFileSync(filePath).toString('base64');
-  return `data:${mime};base64,${b64}`;
-}
-
-export function inlineImagesInHtml(html: string, mockupImagePaths: string[]): string {
-  const assetsDir = path.join(__dirname, '../assets');
-
-  // Inline every file in assets/ that is referenced as img/<filename> in the HTML
-  const assetFiles = fs.readdirSync(assetsDir).filter(f => /\.(png|jpg|jpeg|gif)$/i.test(f));
-  for (const filename of assetFiles) {
-    const assetPath = path.join(assetsDir, filename);
-    const dataUri = toDataUri(assetPath);
-    const safeName = filename.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    html = html.replace(new RegExp(`["']img/${safeName}["']`, 'g'), `"${dataUri}"`);
-    if (filename === 'logo.png') {
-      html = html.replace(/https?:\/\/[^\s"']+hitpay[^\s"']*logo[^\s"']*\.png/gi, dataUri);
-    }
-  }
-
-  // Inline mockup images
-  mockupImagePaths.forEach((imgPath, i) => {
-    if (fs.existsSync(imgPath)) {
-      const dataUri = toDataUri(imgPath);
-      const relRef = new RegExp(`["']img/mockup-${i + 1}\\.png["']`, 'g');
-      html = html.replace(relRef, `"${dataUri}"`);
-      const absRef = new RegExp(imgPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
-      html = html.replace(absRef, dataUri);
-    }
-  });
-
+/**
+ * Returns the HTML with img/ references left as relative paths.
+ * The HTML is for local browser preview only (extract the ZIP first).
+ * Loops rewrites img/ paths to its CDN when you upload the ZIP.
+ */
+export function inlineImagesInHtml(html: string, _mockupImagePaths: string[]): string {
+  // Replace the remote HitPay logo URL with the local img/ reference so
+  // it resolves correctly from an extracted ZIP.
+  html = html.replace(
+    /https?:\/\/[^\s"']+hitpay[^\s"']*logo[^\s"']*\.png/gi,
+    'img/logo.png'
+  );
   return html;
 }
 
@@ -74,14 +54,30 @@ export async function generateZip(input: ZipInput): Promise<string> {
   fs.mkdirSync(outputDir, { recursive: true });
 
   const zip = new JSZip();
-  zip.file('index.html', input.compiledHtml);
+  const imgFolder = zip.folder('img')!;
+
+  // Static assets (logo, social icons, help banner)
+  const assetsDir = path.join(__dirname, '../assets');
+  const assetFiles = fs.readdirSync(assetsDir).filter(f => /\.(png|jpg|jpeg|gif|webp)$/i.test(f));
+  for (const filename of assetFiles) {
+    imgFolder.file(filename, fs.readFileSync(path.join(assetsDir, filename)));
+  }
+
+  // Dynamic mockup screenshots
+  input.mockupImagePaths.forEach((imgPath, i) => {
+    if (imgPath && fs.existsSync(imgPath)) {
+      imgFolder.file(`mockup-${i + 1}.png`, fs.readFileSync(imgPath));
+    }
+  });
+
   zip.file('index.mjml', input.mjmlContent);
+  zip.file('index.html', input.compiledHtml);
   zip.file('README.txt', makeReadme(input.tag, input.subject));
 
   const zipBuffer = await zip.generateAsync({
     type: 'nodebuffer',
     compression: 'DEFLATE',
-    compressionOptions: { level: 9 },
+    compressionOptions: { level: 6 },
   });
 
   const zipPath = path.join(outputDir, `changelog-${input.tag}.zip`);

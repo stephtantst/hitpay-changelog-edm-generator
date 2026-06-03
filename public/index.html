@@ -72,6 +72,17 @@
   }
   .release-tag { font-size: 14px; font-weight: 600; }
   .release-meta { font-size: 11px; color: #999; }
+  .release-tag-pill {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 500;
+    color: #999;
+    background: #f0f0f0;
+    padding: 1px 6px;
+    border-radius: 4px;
+    margin-left: 5px;
+    vertical-align: middle;
+  }
   .release-badge {
     font-size: 11px;
     background: #5B5BD6;
@@ -129,6 +140,49 @@
     border-color: #16a34a;
   }
   .btn-success:hover { background: #15803d; }
+
+  /* ── Selected section ── */
+  .selected-section {
+    margin-bottom: 20px;
+    border: 1.5px solid #5B5BD6;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fafaff;
+  }
+  .selected-section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: #ededfc;
+    border-bottom: 1px solid #d8d8f5;
+  }
+  .selected-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #5B5BD6;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+  .selected-count-badge {
+    font-size: 11px;
+    font-weight: 600;
+    background: #5B5BD6;
+    color: #fff;
+    padding: 1px 8px;
+    border-radius: 100px;
+  }
+  .selected-section-hint {
+    font-size: 11px;
+    color: #9999cc;
+    margin-left: auto;
+  }
+  .selected-section-body { padding: 8px; }
+  .selected-section .feature-card {
+    border-color: #c8c8ee;
+    background: #fff;
+  }
+  .selected-section .feature-card:hover { border-color: #5B5BD6; }
 
   /* ── Feature groups ── */
   .product-group { margin-bottom: 6px; border: 1px solid #e8e8e8; border-radius: 10px; overflow: hidden; }
@@ -226,6 +280,24 @@
     font-size: 13px;
     color: #555;
     line-height: 1.5;
+    cursor: text;
+    border-radius: 4px;
+    transition: background 0.1s;
+  }
+  .feature-desc:hover { background: #f5f5f7; }
+  .desc-textarea {
+    width: 100%;
+    font-size: 13px;
+    font-family: inherit;
+    color: #333;
+    line-height: 1.5;
+    border: 1px solid #5B5BD6;
+    border-radius: 5px;
+    padding: 4px 7px;
+    resize: vertical;
+    outline: none;
+    min-height: 54px;
+    box-shadow: 0 0 0 3px rgba(91,91,214,0.08);
   }
   .feature-priority {
     display: flex;
@@ -275,6 +347,162 @@
   .feature-card.is-hidden { opacity: 0.55; background: #fafafa; }
   .hidden-group-header { background: #f5f5f5; }
 
+  /* ── Docs link ── */
+  .docs-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .docs-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #5B5BD6;
+    text-decoration: none;
+    background: #f0f0ff;
+    border: 1px solid #d8d8f5;
+    border-radius: 5px;
+    padding: 3px 8px;
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: background 0.1s;
+  }
+  .docs-link:hover { background: #e4e4fc; }
+  .docs-edit-btn {
+    background: none;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 10px;
+    color: #bbb;
+    cursor: pointer;
+    transition: all 0.1s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .docs-edit-btn:hover { border-color: #5B5BD6; color: #5B5BD6; background: #fafaff; }
+  .docs-input-wrap { display: flex; align-items: center; gap: 4px; flex: 1; min-width: 0; }
+  .docs-input {
+    flex: 1;
+    min-width: 0;
+    font-size: 11px;
+    padding: 3px 7px;
+    border: 1px solid #5B5BD6;
+    border-radius: 5px;
+    outline: none;
+    color: #333;
+  }
+  .docs-save-btn {
+    background: #5B5BD6;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 11px;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .docs-clear-btn {
+    background: none;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    padding: 3px 6px;
+    font-size: 11px;
+    color: #bbb;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .docs-no-link {
+    font-size: 10px;
+    color: #ccc;
+    cursor: pointer;
+  }
+  .docs-no-link:hover { color: #5B5BD6; }
+
+  /* ── Category select ── */
+  .category-select {
+    appearance: none;
+    -webkit-appearance: none;
+    background: #f0f0ff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%235B5BD6'/%3E%3C/svg%3E") no-repeat right 6px center;
+    border: 1px solid #d8d8f5;
+    border-radius: 5px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #5B5BD6;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 3px 20px 3px 7px;
+    cursor: pointer;
+    max-width: 160px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .category-select:focus { outline: none; border-color: #5B5BD6; }
+  .flag-pill {
+    display: inline-block;
+    font-size: 14px;
+    margin-left: 4px;
+    vertical-align: middle;
+    line-height: 1;
+  }
+
+  /* ── Move to month ── */
+  .feature-priority { position: relative; }
+  .move-btn {
+    background: none;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 10px;
+    color: #bbb;
+    cursor: pointer;
+    transition: all 0.1s;
+    white-space: nowrap;
+  }
+  .move-btn:hover { border-color: #5B5BD6; color: #5B5BD6; background: #fafaff; }
+  .move-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 4px);
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    z-index: 50;
+    min-width: 160px;
+    overflow: hidden;
+  }
+  .move-dropdown-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 8px 12px 4px;
+  }
+  .move-option {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 7px 12px;
+    font-size: 13px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: #333;
+    transition: background 0.1s;
+  }
+  .move-option:hover { background: #f0f0ff; color: #5B5BD6; }
+
   /* ── Image drop zone ── */
   .feature-img-drop {
     width: 68px;
@@ -318,6 +546,22 @@
     padding: 0;
   }
   .feature-img-drop.has-image:hover .drop-remove { opacity: 1; }
+
+  /* ── Newsletter label input ── */
+  .newsletter-label-input {
+    font-size: 13px;
+    padding: 6px 10px;
+    border: 1px solid #d5d5d5;
+    border-radius: 7px;
+    outline: none;
+    background: #fafafa;
+    color: #1a1a1a;
+    width: 140px;
+    transition: border-color 0.15s;
+  }
+  .newsletter-label-input:focus { border-color: #5B5BD6; background: #fff; }
+  .newsletter-label-wrap { display: flex; align-items: center; gap: 6px; }
+  .newsletter-label-prefix { font-size: 12px; color: #888; white-space: nowrap; }
 
   /* ── Selection bar ── */
   .selection-bar {
@@ -370,6 +614,236 @@
   #toast.error { background: #dc2626; }
 
   .loading { text-align: center; color: #aaa; padding: 40px; font-size: 14px; }
+
+  /* ── Search ── */
+  .search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 180px;
+    max-width: 280px;
+  }
+  .search-wrap svg {
+    position: absolute;
+    left: 9px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #bbb;
+    pointer-events: none;
+  }
+  #feature-search {
+    width: 100%;
+    padding: 6px 10px 6px 30px;
+    font-size: 13px;
+    border: 1px solid #d5d5d5;
+    border-radius: 7px;
+    outline: none;
+    background: #fafafa;
+    color: #1a1a1a;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  #feature-search:focus { border-color: #5B5BD6; background: #fff; }
+  #feature-search::placeholder { color: #bbb; }
+
+  /* ── Selected section drag handles ── */
+  .sel-drag-handle {
+    font-size: 14px;
+    color: #c0c0de;
+    cursor: grab;
+    flex-shrink: 0;
+    user-select: none;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: color 0.1s;
+    line-height: 1;
+  }
+  .sel-drag-handle:hover { color: #5B5BD6; }
+  .sel-drag-handle:active { cursor: grabbing; }
+  .sel-pos-num {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #ededfc;
+    color: #5B5BD6;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .selected-section .feature-card.dragging { opacity: 0.35; }
+  .selected-section .feature-card.drag-target { border-color: #5B5BD6 !important; box-shadow: 0 0 0 2px rgba(91,91,214,0.25) !important; background: #f0f0ff !important; }
+  .selected-section.is-dragging .feature-img-drop { pointer-events: none; }
+
+  /* ── Sidebar sections ── */
+  .sidebar-section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 16px 6px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .sidebar-section-header h2 {
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin: 0;
+    flex: 1;
+  }
+  .sidebar-section-header:hover h2 { color: #555; }
+  .sidebar-section-body { display: block; }
+  .sidebar-section-body.collapsed { display: none; }
+  .new-newsletter-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    font-size: 12px;
+    color: #5B5BD6;
+    cursor: pointer;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    transition: background 0.1s;
+    border-radius: 0;
+  }
+  .new-newsletter-btn:hover { background: #f0f0ff; }
+  .new-newsletter-form {
+    padding: 8px 12px;
+    border-top: 1px solid #f0f0f0;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .new-newsletter-form input[type="month"] {
+    flex: 1;
+    font-size: 12px;
+    padding: 4px 8px;
+    border: 1px solid #d5d5d5;
+    border-radius: 6px;
+    outline: none;
+  }
+  .new-newsletter-form input[type="month"]:focus { border-color: #5B5BD6; }
+  .new-newsletter-form button {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid transparent;
+  }
+  .new-newsletter-form .btn-confirm { background: #5B5BD6; color: white; border-color: #5B5BD6; }
+  .new-newsletter-form .btn-cancel { background: none; border-color: #d5d5d5; color: #888; }
+
+  /* ── Assign to newsletter dropdown ── */
+  .assign-btn {
+    background: none;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 10px;
+    color: #bbb;
+    cursor: pointer;
+    transition: all 0.1s;
+    white-space: nowrap;
+  }
+  .assign-btn:hover { border-color: #5B5BD6; color: #5B5BD6; background: #fafaff; }
+  .assign-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 4px);
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    z-index: 50;
+    min-width: 170px;
+    overflow: hidden;
+  }
+  .assign-dropdown-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 8px 12px 4px;
+  }
+  .assign-option {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 7px 12px;
+    font-size: 13px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: #333;
+    transition: background 0.1s;
+  }
+  .assign-option:hover { background: #f0f0ff; color: #5B5BD6; }
+  .assign-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #5B5BD6;
+    background: #ededfc;
+    border: 1px solid #c8c8ee;
+    border-radius: 4px;
+    padding: 2px 7px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.1s;
+  }
+  .assign-pill:hover { background: #ddddf8; }
+
+  /* ── Newsletter view drag handles ── */
+  .nl-drag-handle {
+    font-size: 14px;
+    color: #c0c0de;
+    cursor: grab;
+    flex-shrink: 0;
+    user-select: none;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: color 0.1s;
+    line-height: 1;
+  }
+  .nl-drag-handle:hover { color: #5B5BD6; }
+  .nl-drag-handle:active { cursor: grabbing; }
+  .nl-pos-num {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #e8f5e9;
+    color: #2e7d32;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .nl-list .feature-card.dragging { opacity: 0.35; }
+  .nl-list .feature-card.drag-target { border-color: #5B5BD6 !important; box-shadow: 0 0 0 2px rgba(91,91,214,0.25) !important; background: #f0f0ff !important; }
+  .nl-list.is-dragging .feature-img-drop { pointer-events: none; }
+  .remove-btn {
+    background: none;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 10px;
+    color: #bbb;
+    cursor: pointer;
+    transition: all 0.1s;
+    white-space: nowrap;
+  }
+  .remove-btn:hover { border-color: #f87171; color: #ef4444; background: #fff5f5; }
 </style>
 </head>
 <body>
@@ -382,14 +856,27 @@
 
 <div class="layout">
   <aside>
-    <h2>Releases</h2>
-    <div id="release-list"><div class="loading">Loading...</div></div>
+    <div class="sidebar-section-header" onclick="toggleSidebarSection('releases')">
+      <span class="group-chevron open" id="sec-chev-releases">&#9654;</span>
+      <h2>Releases</h2>
+    </div>
+    <div id="releases-section-body" class="sidebar-section-body">
+      <div id="release-list"><div class="loading">Loading...</div></div>
+    </div>
+
+    <div class="sidebar-section-header" onclick="toggleSidebarSection('changelog')">
+      <span class="group-chevron open" id="sec-chev-changelog">&#9654;</span>
+      <h2>Monthly Changelog</h2>
+    </div>
+    <div id="changelog-section-body" class="sidebar-section-body">
+      <div id="newsletter-list"><div class="loading">Loading...</div></div>
+    </div>
   </aside>
 
   <main id="main-panel">
     <div class="empty">
       <div class="empty-icon">📋</div>
-      <p>Select a release from the left to review its features</p>
+      <p>Select a release or newsletter from the left</p>
     </div>
   </main>
 </div>
@@ -397,10 +884,71 @@
 <div id="toast"></div>
 
 <script>
-let currentTag = null;
+let currentRelease = null;
 let allFeatures = [];
+let allReleases = [];
 let activeFilter = 'all';
+let searchQuery = '';
+let selectedSectionOpen = true;
+let selDragSrcId = null;
+let newsletterLabel = '';
 const expandedGroups = new Set();
+
+// Newsletter state
+let currentNewsletter = null;
+let allNewsletters = [];
+let nlFeatures = [];
+let nlDragSrcId = null;
+const sidebarCollapsed = { releases: false, changelog: false };
+
+const CANONICAL_CATEGORIES = [
+  'In-Person Payments',
+  'Online Payments',
+  'Integrations',
+  'Developers',
+  'Billing & Invoicing',
+  'Reports & Analytics',
+  'Fraud & Security',
+  'Platform & Settings',
+  'Point of Sale',
+  'Payment Links',
+  'Checkout',
+  'Online Store',
+  'Recurring Billing',
+  'Invoicing',
+  'Payments',
+  'Dashboard',
+  'Onboarding',
+  'BillPay',
+];
+
+const COUNTRY_FLAGS = {
+  'singapore': '🇸🇬',
+  'malaysia': '🇲🇾',
+  'hong kong': '🇭🇰',
+  'australia': '🇦🇺',
+  'united kingdom': '🇬🇧',
+  ' uk ': '🇬🇧',
+  'indonesia': '🇮🇩',
+  'thailand': '🇹🇭',
+  'philippines': '🇵🇭',
+  'india': '🇮🇳',
+};
+
+function detectFlags(f) {
+  const text = (f.title + ' ' + f.description).toLowerCase();
+  const seen = new Set();
+  const flags = [];
+  for (const [kw, flag] of Object.entries(COUNTRY_FLAGS)) {
+    if (text.includes(kw) && !seen.has(flag)) { seen.add(flag); flags.push(flag); }
+  }
+  return flags;
+}
+
+function fmtMonthFromDate(isoDate) {
+  if (!isoDate) return '';
+  return new Date(isoDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+}
 
 function safeId(area) {
   return area.replace(/[^a-zA-Z0-9]/g, '_');
@@ -422,19 +970,35 @@ function toggleGroup(area) {
   }
 }
 
-function updateGroupCounts() {
-  const counts = {};
-  for (const f of allFeatures.filter(f => !f.is_hidden)) {
-    if (!counts[f.product_area]) counts[f.product_area] = { total: 0, sel: 0 };
-    counts[f.product_area].total++;
-    if (f.is_selected) counts[f.product_area].sel++;
-  }
-  for (const [area, c] of Object.entries(counts)) {
-    const el = document.getElementById(`gsel-${safeId(area)}`);
-    if (el) {
-      el.textContent = `${c.sel}/${c.total}`;
-      el.className = `group-sel-count${c.sel > 0 ? ' has-sel' : ''}`;
+
+async function enrichSelected() {
+  const toEnrich = allFeatures.filter(x => x.is_selected && !x.is_hidden);
+  if (!toEnrich.length) return;
+
+  const btn = [...document.querySelectorAll('.selection-bar button')].find(b => b.textContent.includes('Enrich'));
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Adding details…'; }
+
+  try {
+    const res = await fetch(`/api/releases/${currentRelease}/enrich`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ featureIds: toEnrich.map(f => f.id) }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Enrichment failed');
+
+    for (const updated of data.updated) {
+      const f = allFeatures.find(x => x.id === updated.id);
+      if (f) f.description = updated.description;
+      const card = document.getElementById(`card-${updated.id}`);
+      if (card) card.querySelector('.feature-desc').textContent = updated.description;
     }
+    showToast(`✓ ${data.updated.length} description${data.updated.length !== 1 ? 's' : ''} enriched`, 'success');
+  } catch (err) {
+    showToast(err.message, 'error');
+  } finally {
+    const selected = allFeatures.filter(x => x.is_selected).length;
+    renderSelectionBar(selected, allFeatures.length);
   }
 }
 
@@ -447,13 +1011,12 @@ async function hideSelected() {
       body: JSON.stringify({ is_hidden: 1 }),
     }).then(() => { f.is_hidden = 1; f.is_selected = 0; })
   ));
-  // Deselect all on server
-  await fetch(`/api/releases/${currentTag}/deselect-all`, { method: 'POST' });
+  await fetch(`/api/releases/${currentRelease}/deselect-all`, { method: 'POST' });
   renderFeatures();
   const selected = allFeatures.filter(x => x.is_selected).length;
-  document.querySelector('.meta').textContent = `${allFeatures.length} features identified · ${selected} selected`;
+  document.querySelector('.meta').textContent = `${allFeatures.length} features · ${selected} selected`;
   renderSelectionBar(selected, allFeatures.length);
-  refreshSidebarBadge(currentTag, selected);
+  refreshSidebarBadge(currentRelease, selected);
   showToast(`${toHide.length} item${toHide.length !== 1 ? 's' : ''} hidden`, 'success');
 }
 
@@ -476,9 +1039,9 @@ async function hideFeature(id) {
   }
   renderFeatures();
   const selected = allFeatures.filter(x => x.is_selected).length;
-  document.querySelector('.meta').textContent = `${allFeatures.length} features identified · ${selected} selected`;
+  document.querySelector('.meta').textContent = `${allFeatures.length} features · ${selected} selected`;
   renderSelectionBar(selected, allFeatures.length);
-  refreshSidebarBadge(currentTag, selected);
+  refreshSidebarBadge(currentRelease, selected);
 }
 
 async function restoreFeature(id) {
@@ -490,6 +1053,21 @@ async function restoreFeature(id) {
     body: JSON.stringify({ is_hidden: 0 }),
   });
   f.is_hidden = 0;
+  renderFeatures();
+}
+
+function onSearch(val) {
+  searchQuery = val.trim();
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    allFeatures.filter(f => !f.is_hidden).forEach(f => {
+      if (
+        f.title.toLowerCase().includes(q) ||
+        f.description.toLowerCase().includes(q) ||
+        f.product_area.toLowerCase().includes(q)
+      ) expandedGroups.add(f.product_area);
+    });
+  }
   renderFeatures();
 }
 
@@ -506,25 +1084,49 @@ function renderFeatures() {
   const visible = allFeatures.filter(f => !f.is_hidden);
   const hidden = allFeatures.filter(f => f.is_hidden);
 
-  const filtered = activeFilter === 'all' ? visible : visible.filter(f => inferType(f) === activeFilter);
+  // Selected section: always shows all selected visible items, sorted by priority
+  const selectedItems = visible
+    .filter(f => f.is_selected)
+    .sort((a, b) => a.priority - b.priority || a.id - b.id);
+
+  // Unselected items go through search + type filter
+  const unselected = visible.filter(f => !f.is_selected);
+  const q = searchQuery.toLowerCase();
+  const afterFilter = activeFilter === 'all' ? unselected : unselected.filter(f => inferType(f) === activeFilter);
+  const filtered = q
+    ? afterFilter.filter(f =>
+        f.title.toLowerCase().includes(q) ||
+        f.description.toLowerCase().includes(q) ||
+        f.product_area.toLowerCase().includes(q)
+      )
+    : afterFilter;
+
   const grouped = {};
   for (const f of filtered) {
     if (!grouped[f.product_area]) grouped[f.product_area] = [];
     grouped[f.product_area].push(f);
   }
 
-  // selection counts per area (visible only)
-  const selCounts = {}, totCounts = {};
-  for (const f of visible) {
-    totCounts[f.product_area] = (totCounts[f.product_area] || 0) + 1;
-    if (f.is_selected) selCounts[f.product_area] = (selCounts[f.product_area] || 0) + 1;
+  // Selected section HTML
+  let selectedHtml = '';
+  if (selectedItems.length > 0) {
+    selectedHtml = `
+      <div class="selected-section${selectedSectionOpen ? '' : ''}">
+        <div class="selected-section-header" onclick="toggleSelectedSection()" style="cursor:pointer;user-select:none;">
+          <span class="group-chevron${selectedSectionOpen ? ' open' : ''}" style="color:#5B5BD6;">&#9654;</span>
+          <span class="selected-label">Selected</span>
+          <span class="selected-count-badge">${selectedItems.length}</span>
+          <span class="selected-section-hint">Drag to reorder · will appear in this order in the email</span>
+        </div>
+        ${selectedSectionOpen ? `<div class="selected-section-body">${selectedItems.map((f, i) => selectedFeatureCard(f, i)).join('')}</div>` : ''}
+      </div>
+    `;
   }
 
+  // Product area groups (unselected only)
   const areasHtml = Object.entries(grouped).map(([area, feats]) => {
     const id = safeId(area);
     const isOpen = expandedGroups.has(area);
-    const sel = selCounts[area] || 0;
-    const tot = totCounts[area] || feats.length;
     const safeArea = area.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     return `
       <div class="product-group">
@@ -534,16 +1136,15 @@ function renderFeatures() {
             <span class="product-area-label">${escHtml(area)}</span>
             <span class="group-count">${feats.length} item${feats.length !== 1 ? 's' : ''}</span>
           </div>
-          <span class="group-sel-count${sel > 0 ? ' has-sel' : ''}" id="gsel-${id}">${sel}/${tot}</span>
         </div>
         <div class="product-group-body${isOpen ? ' open' : ''}" id="gbody-${id}">
           ${feats.map(f => featureCard(f)).join('')}
         </div>
       </div>
     `;
-  }).join('') || '<div style="padding:40px;text-align:center;color:#aaa;">No items match this filter.</div>';
+  }).join('') || (selectedItems.length === 0 ? '<div style="padding:40px;text-align:center;color:#aaa;">No items match this filter.</div>' : '');
 
-  // Hidden items group (always at bottom, always all hidden regardless of filter)
+  // Hidden section
   let hiddenHtml = '';
   if (hidden.length > 0) {
     const hid = safeId('__hidden__');
@@ -564,13 +1165,14 @@ function renderFeatures() {
     `;
   }
 
-  document.getElementById('features-list').innerHTML = areasHtml + hiddenHtml;
+  document.getElementById('features-list').innerHTML = selectedHtml + areasHtml + hiddenHtml;
 }
 
 // ── Load releases ──────────────────────────────────────
 async function loadReleases() {
   const res = await fetch('/api/releases');
   const releases = await res.json();
+  allReleases = releases;
   const el = document.getElementById('release-list');
 
   if (!releases.length) {
@@ -578,22 +1180,24 @@ async function loadReleases() {
     return;
   }
 
-  el.innerHTML = releases.map(r => `
-    <div class="release-item" data-tag="${r.tag}" onclick="loadRelease('${r.tag}')">
-      <div>
-        <div class="release-tag">${r.tag}</div>
-        <div class="release-meta">${fmtDate(r.published_at)}</div>
+  el.innerHTML = releases.map(r => {
+    const month = fmtMonthFromDate(r.published_at);
+    return `
+      <div class="release-item" data-tag="${escHtml(r.tag)}" onclick="loadRelease('${escHtml(r.tag)}')">
+        <div>
+          <div class="release-tag">${escHtml(r.tag)} <span style="font-weight:400;color:#aaa;font-size:12px;">(${month})</span></div>
+          <div class="release-meta">${r.feature_count} feature${r.feature_count !== 1 ? 's' : ''}</div>
+        </div>
+        <span class="release-badge ${(r.selected_count || 0) == 0 ? 'zero' : ''}">${r.selected_count || 0}</span>
       </div>
-      <span class="release-badge ${r.selected_count == 0 ? 'zero' : ''}">${r.selected_count || 0}</span>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 // ── Load features for a release ───────────────────────
 async function loadRelease(tag) {
-  currentTag = tag;
+  currentRelease = tag;
 
-  // Update sidebar active state
   document.querySelectorAll('.release-item').forEach(el => {
     el.classList.toggle('active', el.dataset.tag === tag);
   });
@@ -601,25 +1205,33 @@ async function loadRelease(tag) {
   const panel = document.getElementById('main-panel');
   panel.innerHTML = '<div class="loading">Loading features...</div>';
 
-  const res = await fetch(`/api/releases/${tag}/features`);
+  const res = await fetch(`/api/releases/${encodeURIComponent(tag)}/features`);
   const { features } = await res.json();
   allFeatures = features;
   activeFilter = 'all';
+  searchQuery = '';
   expandedGroups.clear();
 
   const selectedCount = features.filter(f => f.is_selected).length;
+  const releaseData = allReleases.find(r => r.tag === tag);
+  const monthLabel = releaseData ? fmtMonthFromDate(releaseData.published_at) : '';
+  newsletterLabel = monthLabel;
 
   panel.innerHTML = `
     <div class="main-header">
       <div>
-        <h2>${tag}</h2>
-        <div class="meta">${features.length} features identified · ${selectedCount} selected</div>
+        <h2>${escHtml(tag)}${monthLabel ? ` <span style="font-size:14px;font-weight:400;color:#888;">(${monthLabel})</span>` : ''}</h2>
+        <div class="meta">${features.length} features · ${selectedCount} selected</div>
       </div>
       <div class="actions">
+        <div class="search-wrap">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.6"/><line x1="10.4" y1="10.4" x2="14" y2="14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <input id="feature-search" type="text" placeholder="Search features…" oninput="onSearch(this.value)" />
+        </div>
         <button class="btn btn-ghost" id="filter-all" onclick="setFilter('all')" style="border-color:#5B5BD6;color:#5B5BD6;">All</button>
         <button class="btn btn-ghost" id="filter-feature" onclick="setFilter('feature')">Features</button>
         <button class="btn btn-ghost" id="filter-fix" onclick="setFilter('fix')">Fixes</button>
-        <button class="btn btn-ghost" onclick="selectAll()">Select all</button>
+          <button class="btn btn-ghost" onclick="selectAll()">Select all</button>
         <button class="btn btn-ghost" onclick="deselectAll()">Clear all</button>
       </div>
     </div>
@@ -627,8 +1239,180 @@ async function loadRelease(tag) {
     <div style="height:80px"></div>
   `;
   renderFeatures();
-
   renderSelectionBar(selectedCount, features.length);
+}
+
+async function updateCategory(id, newCategory) {
+  const res = await fetch(`/api/features/${id}/category`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ product_area: newCategory }),
+  });
+  if (!res.ok) { showToast('Failed to update category', 'error'); return; }
+  [allFeatures, nlFeatures].forEach(arr => {
+    const f = arr.find(x => x.id === id);
+    if (f) f.product_area = newCategory;
+  });
+  rerenderCurrentPanel();
+  showToast('Category updated', 'success');
+}
+
+function categorySelectHtml(f) {
+  const allOptions = [...new Set([f.product_area, ...CANONICAL_CATEGORIES])];
+  const opts = allOptions.map(c =>
+    `<option value="${escHtml(c)}" ${c === f.product_area ? 'selected' : ''}>${escHtml(c)}</option>`
+  ).join('');
+  return `<select class="category-select" onclick="event.stopPropagation()" onchange="event.stopPropagation(); updateCategory(${f.id}, this.value)">${opts}</select>`;
+}
+
+function flagPillsHtml(f) {
+  const flags = detectFlags(f);
+  return flags.map(flag => `<span class="flag-pill">${flag}</span>`).join('');
+}
+
+// ── Docs link ─────────────────────────────────────────
+const DOCS_BASE = 'https://docs.hitpayapp.com';
+const DOCS_MAP = [
+  { kw: ['bukku'],                                            path: 'connections/bukku' },
+  { kw: ['quickbooks','quick books'],                        path: 'connections/quickbooks' },
+  { kw: ['zoho books','zoho'],                               path: 'connections/zoho-books' },
+  { kw: ['zapier'],                                          path: 'connections/zapier' },
+  { kw: ['make.com','make integration'],                     path: 'connections/make' },
+  { kw: ['twilio'],                                          path: 'connections/twilio' },
+  { kw: ['eber'],                                            path: 'connections/eber' },
+  { kw: ['cal.com','cal scheduling'],                        path: 'connections/cal' },
+  { kw: ['xero'],                                            path: 'connections/xero' },
+  { kw: ['stripe connect','stripe'],                         path: 'connections/stripe/overview' },
+  { kw: ['shopify'],                                         path: 'plugins/shopify' },
+  { kw: ['woocommerce','woo commerce'],                      path: 'plugins/woocommerce' },
+  { kw: ['wordpress'],                                       path: 'plugins/wordpress' },
+  { kw: ['wix'],                                             path: 'plugins/wix' },
+  { kw: ['shoplazza'],                                       path: 'plugins/shoplazza' },
+  { kw: ['opencart'],                                        path: 'plugins/opencart' },
+  { kw: ['prestashop'],                                      path: 'plugins/prestashop' },
+  { kw: ['magento'],                                         path: 'plugins/magento' },
+  { kw: ['odoo'],                                            path: 'plugins/odoo' },
+  { kw: ['shopback pay pos','shopback pos'],                 path: 'payment-methods/shopback' },
+  { kw: ['shopback pay','shopback'],                         path: 'payment-methods/shopback' },
+  { kw: ['shopeepay','shopee pay'],                          path: 'payment-methods/shopeepay' },
+  { kw: ['spaylater','s pay later'],                        path: 'payment-methods/spaylater' },
+  { kw: ['grabpay paylater','grab pay later'],               path: 'payment-methods/grabpay_paylater' },
+  { kw: ['grabpay','grab pay'],                              path: 'payment-methods/grabpay' },
+  { kw: ['duitnow qr','duitnow'],                           path: 'payment-methods/duitnow' },
+  { kw: ['paynow'],                                          path: 'payment-methods/paynow' },
+  { kw: ['fpx'],                                             path: 'payment-methods/fpx' },
+  { kw: ['touch n go','touchngo','tng ewallet'],             path: 'payment-methods/touchngo' },
+  { kw: ['promptpay'],                                       path: 'payment-methods/promptpay' },
+  { kw: ['qris'],                                            path: 'payment-methods/qris' },
+  { kw: ['alipay+','alipay plus','alipay'],                 path: 'payment-methods/alipay' },
+  { kw: ['atome'],                                           path: 'payment-methods/atome' },
+  { kw: ['gcash'],                                           path: 'payment-methods/gcash' },
+  { kw: ['payid'],                                           path: 'payment-methods/payid' },
+  { kw: ['wechat pay','wechatpay'],                         path: 'payment-methods/wechatpay' },
+  { kw: ['upi'],                                             path: 'payment-methods/upi' },
+  { kw: ['qrph'],                                            path: 'payment-methods/qrph' },
+  { kw: ['truemoney'],                                       path: 'payment-methods/truemoney' },
+  { kw: ['boost'],                                           path: 'payment-methods/boost' },
+  { kw: ['maybankqr','maybank qr'],                         path: 'payment-methods/maybankqr' },
+  { kw: ['vietqr'],                                          path: 'payment-methods/vietqr' },
+  { kw: ['tap to pay on iphone','tap-to-pay iphone','tap to pay iphone'], path: 'pos/readers/tap-to-pay-iphone' },
+  { kw: ['tap to pay','tap-to-pay'],                        path: 'pos/readers/tap-to-pay' },
+  { kw: ['wisepad'],                                         path: 'pos/readers/wisepad3' },
+  { kw: ['wisepose'],                                        path: 'pos/readers/wisepose' },
+  { kw: ['soundbox'],                                        path: 'pos/readers/soundbox' },
+  { kw: ['receipt printer','bluetooth printer'],             path: 'pos/receipt-printer' },
+  { kw: ['cash drawer'],                                     path: 'pos/cash-drawer' },
+  { kw: ['mall gto'],                                        path: 'pos/mall-gto' },
+  { kw: ['point of sale'],                                   path: 'pos/overview' },
+  { kw: ['static qr code','static qr'],                     path: 'static-qrs/static-qr' },
+  { kw: ['payment link'],                                    path: 'payment-links/payment-links' },
+  { kw: ['recurring billing','subscription plan'],           path: 'billing/subscriptions' },
+  { kw: ['repeating invoice'],                               path: 'invoicing/repeating-invoice' },
+  { kw: ['invoice'],                                         path: 'invoicing/invoice-basics' },
+  { kw: ['custom domain'],                                   path: 'store/custom-domain' },
+  { kw: ['online store'],                                    path: 'store/setup-online-store' },
+  { kw: ['bank payout'],                                     path: 'bank-payouts/bank-payouts' },
+  { kw: ['b2b payment'],                                     path: 'b2b-payments/overview' },
+  { kw: ['cross-border payment','cross border payment'],     path: 'payments/cross-border-payments' },
+  { kw: ['admin fee'],                                       path: 'payments/admin-fees' },
+  { kw: ['webhook'],                                         path: 'apis/guide/overview' },
+  { kw: ['audit log'],                                       path: 'security/audit-logs' },
+  { kw: ['two-factor','2fa'],                               path: 'setup/2fa' },
+  { kw: ['user management'],                                 path: 'setup/user-management' },
+  { kw: ['analytics','order report'],                        path: 'reporting/payments' },
+];
+
+function autoDocsUrl(f) {
+  const title = (f.title || '').toLowerCase();
+  const full  = (title + ' ' + (f.description || '')).toLowerCase();
+  for (const e of DOCS_MAP) {
+    if (e.kw.some(k => title.includes(k))) return `${DOCS_BASE}/${e.path}`;
+  }
+  for (const e of DOCS_MAP) {
+    if (e.kw.some(k => full.includes(k))) return `${DOCS_BASE}/${e.path}`;
+  }
+  return null;
+}
+
+function resolvedDocsUrl(f) {
+  if (f.docs_url === 'none') return null;   // explicitly deleted
+  return f.docs_url || autoDocsUrl(f);
+}
+
+function docsRowHtml(f) {
+  const url = resolvedDocsUrl(f);
+  const displayUrl = url ? url.replace('https://docs.hitpayapp.com/', '') : '';
+  return `
+    <div class="docs-row" id="docs-row-${f.id}">
+      ${url
+        ? `<a class="docs-link" href="${escHtml(url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="${escHtml(url)}">📄 ${escHtml(displayUrl)}</a>
+           <button class="docs-edit-btn" onclick="event.stopPropagation(); showDocsInput(${f.id}, '${escHtml(url)}')">Edit</button>
+           <button class="docs-clear-btn" title="Remove docs link" onclick="event.stopPropagation(); clearDocsUrl(${f.id})">✕</button>`
+        : `<span class="docs-no-link" onclick="event.stopPropagation(); showDocsInput(${f.id}, '')">+ Add docs link</span>`
+      }
+    </div>`;
+}
+
+function showDocsInput(id, currentUrl) {
+  const row = document.getElementById(`docs-row-${id}`);
+  if (!row) return;
+  row.innerHTML = `
+    <div class="docs-input-wrap" onclick="event.stopPropagation()">
+      <input class="docs-input" id="docs-input-${id}" type="url" value="${escHtml(currentUrl)}" placeholder="https://docs.hitpayapp.com/…" />
+      <button class="docs-save-btn" onclick="event.stopPropagation(); saveDocsUrl(${id})">Save</button>
+      <button class="docs-clear-btn" onclick="event.stopPropagation(); clearDocsUrl(${id})">✕</button>
+    </div>`;
+  setTimeout(() => document.getElementById(`docs-input-${id}`)?.focus(), 0);
+}
+
+async function saveDocsUrl(id) {
+  const input = document.getElementById(`docs-input-${id}`);
+  const url = input ? input.value.trim() : '';
+  await fetch(`/api/features/${id}/docs-url`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ docs_url: url || null }),
+  });
+  [allFeatures, nlFeatures].forEach(arr => {
+    const f = arr.find(x => x.id === id);
+    if (f) f.docs_url = url || null;
+  });
+  rerenderCurrentPanel();
+  showToast('Docs link saved', 'success');
+}
+
+async function clearDocsUrl(id) {
+  await fetch(`/api/features/${id}/docs-url`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ docs_url: 'none' }),
+  });
+  [allFeatures, nlFeatures].forEach(arr => {
+    const f = arr.find(x => x.id === id);
+    if (f) f.docs_url = 'none';
+  });
+  rerenderCurrentPanel();
+  showToast('Docs link removed');
 }
 
 function inferType(f) {
@@ -642,12 +1426,18 @@ function featureCard(f) {
     ? `<img src="/api/features/${f.id}/image?t=${Date.now()}" alt="" /><button class="drop-remove" onclick="event.stopPropagation();removeImage(${f.id})" title="Remove">✕</button>`
     : `<span style="font-size:18px;line-height:1;">+</span><span>image</span>`;
   return `
-    <div class="feature-card ${f.is_selected ? 'selected' : ''}" id="card-${f.id}" onclick="toggleFeature(${f.id})">
-      <input type="checkbox" ${f.is_selected ? 'checked' : ''} onclick="event.stopPropagation(); toggleFeature(${f.id})" />
+    <div class="feature-card ${f.is_selected ? 'selected' : ''}" id="card-${f.id}">
+      <input type="checkbox" ${f.is_selected ? 'checked' : ''} onclick="toggleFeature(${f.id})" />
       <div class="feature-body">
-        <div><span class="feature-type-badge ${type}">${type === 'fix' ? 'Fix' : 'Feature'}</span></div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:5px;">
+          <span class="feature-type-badge ${type}">${type === 'fix' ? 'Fix' : 'Feature'}</span>
+          <span class="release-tag-pill">${escHtml(f.release_tag)}</span>
+          ${categorySelectHtml(f)}
+          ${flagPillsHtml(f)}
+        </div>
         <div class="feature-title">${escHtml(f.title)}</div>
-        <div class="feature-desc">${escHtml(f.description)}</div>
+        <div class="feature-desc" title="Click to edit" onclick="event.stopPropagation();editDescription(${f.id},this)">${escHtml(f.description)}</div>
+        ${docsRowHtml(f)}
       </div>
       <div class="feature-img-drop ${f.has_image ? 'has-image' : ''}" id="imgdrop-${f.id}"
         ondragover="event.preventDefault();event.stopPropagation();document.getElementById('imgdrop-${f.id}').classList.add('drag-over')"
@@ -659,8 +1449,7 @@ function featureCard(f) {
         <input type="file" id="imgfile-${f.id}" accept="image/*" style="display:none" onchange="handleImageFile(event,${f.id})" />
       </div>
       <div class="feature-priority">
-        <button class="priority-btn" title="Move up" onclick="event.stopPropagation(); movePriority(${f.id}, -1)">▲</button>
-        <button class="priority-btn" title="Move down" onclick="event.stopPropagation(); movePriority(${f.id}, 1)">▼</button>
+        ${assignBtnHtml(f)}
         <button class="hide-btn" onclick="event.stopPropagation(); hideFeature(${f.id})">Hide</button>
       </div>
     </div>
@@ -674,7 +1463,7 @@ function hiddenCard(f) {
       <div class="feature-body">
         <div><span class="feature-type-badge ${type}">${type === 'fix' ? 'Fix' : 'Feature'}</span></div>
         <div class="feature-title">${escHtml(f.title)}</div>
-        <div class="feature-desc">${escHtml(f.description)}</div>
+        <div class="feature-desc" title="Click to edit" onclick="event.stopPropagation();editDescription(${f.id},this)">${escHtml(f.description)}</div>
       </div>
       <div class="feature-priority">
         <button class="restore-btn" onclick="restoreFeature(${f.id})">Restore</button>
@@ -688,10 +1477,15 @@ function renderSelectionBar(selected, total) {
   const bar = document.createElement('div');
   bar.className = 'selection-bar';
   bar.innerHTML = `
-    <span class="selection-count"><strong>${selected}</strong> of ${total} features selected (top 5 shown in email)</span>
-    <div style="display:flex;gap:8px;align-items:center;">
+    <span class="selection-count"><strong>${selected}</strong> of ${total} features selected</span>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
       ${selected > 0 ? `<button class="btn btn-ghost" style="border-color:#fca5a5;color:#ef4444;" onclick="hideSelected()">Hide selected (${selected})</button>` : ''}
-      <button class="btn btn-success" ${selected === 0 ? 'disabled' : ''} onclick="generateEmail()">
+      ${selected > 0 ? `<button class="btn btn-ghost" style="border-color:#a78bfa;color:#7c3aed;" onclick="enrichSelected()">✦ Add more details (${selected} selected)</button>` : ''}
+      <div class="newsletter-label-wrap">
+        <span class="newsletter-label-prefix">Label:</span>
+        <input class="newsletter-label-input" type="text" value="${escHtml(newsletterLabel)}" placeholder="e.g. June 2026" oninput="newsletterLabel = this.value" title="Newsletter month shown in the email (e.g. June 2026)" />
+      </div>
+      <button class="btn btn-success" ${selected === 0 ? 'disabled' : ''} onclick="generateFromSelectedOrder()">
         ⚡ Generate ZIP
       </button>
     </div>
@@ -710,37 +1504,131 @@ async function toggleFeature(id) {
     body: JSON.stringify({ is_selected: newVal }),
   });
   f.is_selected = newVal;
-  document.getElementById(`card-${id}`).classList.toggle('selected', !!newVal);
-  document.getElementById(`card-${id}`).querySelector('input').checked = !!newVal;
 
   const selected = allFeatures.filter(x => x.is_selected).length;
-  document.querySelector('.meta').textContent = `${allFeatures.length} features identified · ${selected} selected`;
-  updateGroupCounts();
+  document.querySelector('.meta').textContent = `${allFeatures.length} features · ${selected} selected`;
+  renderFeatures();
   renderSelectionBar(selected, allFeatures.length);
-  refreshSidebarBadge(currentTag, selected);
+  refreshSidebarBadge(currentRelease, selected);
 }
 
-async function movePriority(id, direction) {
-  const f = allFeatures.find(x => x.id === id);
-  if (!f) return;
-  const newPriority = Math.max(0, f.priority + direction);
-  await fetch(`/api/features/${id}/priority`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ priority: newPriority }),
+function toggleSelectedSection() {
+  selectedSectionOpen = !selectedSectionOpen;
+  renderFeatures();
+}
+
+function selectedFeatureCard(f, i) {
+  const type = inferType(f);
+  const imgZoneInner = f.has_image
+    ? `<img src="/api/features/${f.id}/image?t=${Date.now()}" alt="" /><button class="drop-remove" onclick="event.stopPropagation();removeImage(${f.id})" title="Remove">✕</button>`
+    : `<span style="font-size:18px;line-height:1;">+</span><span>image</span>`;
+  return `
+    <div class="feature-card selected" id="card-${f.id}"
+      draggable="true"
+      ondragstart="selDragStart(event,${f.id})"
+      ondragover="event.preventDefault();selDragOver(event,${f.id})"
+      ondrop="selDragDrop(event,${f.id})"
+      ondragend="selDragEnd()">
+      <span class="sel-drag-handle" onclick="event.stopPropagation()">&#8942;&#8942;</span>
+      <span class="sel-pos-num">${i + 1}</span>
+      <input type="checkbox" checked onclick="toggleFeature(${f.id})" />
+      <div class="feature-body">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:5px;">
+          <span class="feature-type-badge ${type}">${type === 'fix' ? 'Fix' : 'Feature'}</span>
+          <span class="release-tag-pill">${escHtml(f.release_tag || '')}</span>
+          ${categorySelectHtml(f)}
+          ${flagPillsHtml(f)}
+        </div>
+        <div class="feature-title">${escHtml(f.title)}</div>
+        <div class="feature-desc" title="Click to edit" onclick="event.stopPropagation();editDescription(${f.id},this)">${escHtml(f.description)}</div>
+        ${docsRowHtml(f)}
+      </div>
+      <div class="feature-img-drop ${f.has_image ? 'has-image' : ''}" id="imgdrop-${f.id}"
+        ondragover="event.preventDefault();event.stopPropagation();document.getElementById('imgdrop-${f.id}').classList.add('drag-over')"
+        ondragleave="document.getElementById('imgdrop-${f.id}').classList.remove('drag-over')"
+        ondrop="event.stopPropagation();handleImageDrop(event,${f.id})"
+        onclick="event.stopPropagation();document.getElementById('imgfile-${f.id}').click()"
+        title="Drop image or click to upload">
+        ${imgZoneInner}
+        <input type="file" id="imgfile-${f.id}" accept="image/*" style="display:none" onchange="handleImageFile(event,${f.id})" />
+      </div>
+      <div class="feature-priority">
+        ${assignBtnHtml(f)}
+        <button class="hide-btn" onclick="event.stopPropagation(); hideFeature(${f.id})">Hide</button>
+      </div>
+    </div>
+  `;
+}
+
+// ── Selected section drag-to-reorder ──────────────────
+function selDragStart(event, id) {
+  selDragSrcId = id;
+  event.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => {
+    document.getElementById(`card-${id}`)?.classList.add('dragging');
+    document.querySelector('.selected-section')?.classList.add('is-dragging');
+  }, 0);
+}
+
+function selDragOver(event, id) {
+  event.preventDefault();
+  event.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('.selected-section .feature-card').forEach(el => el.classList.remove('drag-target'));
+  if (id !== selDragSrcId) document.getElementById(`card-${id}`)?.classList.add('drag-target');
+}
+
+function selDragDrop(event, targetId) {
+  event.preventDefault();
+  if (!selDragSrcId || selDragSrcId === targetId) return;
+
+  const items = allFeatures
+    .filter(f => f.is_selected && !f.is_hidden)
+    .sort((a, b) => a.priority - b.priority || a.id - b.id);
+
+  const srcIdx = items.findIndex(f => f.id === selDragSrcId);
+  const tgtIdx = items.findIndex(f => f.id === targetId);
+  if (srcIdx === -1 || tgtIdx === -1) return;
+
+  const [moved] = items.splice(srcIdx, 1);
+  items.splice(tgtIdx, 0, moved);
+
+  items.forEach((f, i) => {
+    const af = allFeatures.find(x => x.id === f.id);
+    if (af) af.priority = i * 10;
+    fetch(`/api/features/${f.id}/priority`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ priority: i * 10 }),
+    });
   });
-  f.priority = newPriority;
-  showToast('Priority updated');
+
+  selDragSrcId = null;
+  renderFeatures();
+  showToast('Order saved');
+}
+
+function selDragEnd() {
+  document.querySelectorAll('.selected-section .feature-card').forEach(el => el.classList.remove('drag-target', 'dragging'));
+  document.querySelector('.selected-section')?.classList.remove('is-dragging');
+  selDragSrcId = null;
+}
+
+function generateFromSelectedOrder() {
+  const orderedIds = allFeatures
+    .filter(f => f.is_selected && !f.is_hidden)
+    .sort((a, b) => a.priority - b.priority || a.id - b.id)
+    .map(f => f.id);
+  generateEmail(orderedIds);
 }
 
 async function selectAll() {
-  await fetch(`/api/releases/${currentTag}/select-all`, { method: 'POST' });
-  loadRelease(currentTag);
+  await fetch(`/api/releases/${currentRelease}/select-all`, { method: 'POST' });
+  loadRelease(currentRelease);
 }
 
 async function deselectAll() {
-  await fetch(`/api/releases/${currentTag}/deselect-all`, { method: 'POST' });
-  loadRelease(currentTag);
+  await fetch(`/api/releases/${currentRelease}/deselect-all`, { method: 'POST' });
+  loadRelease(currentRelease);
 }
 
 function refreshSidebarBadge(tag, count) {
@@ -752,13 +1640,17 @@ function refreshSidebarBadge(tag, count) {
 }
 
 // ── Generate ZIP ───────────────────────────────────────
-async function generateEmail() {
+async function generateEmail(orderedIds) {
   const btn = document.querySelector('.btn-success');
   btn.disabled = true;
   btn.textContent = '⏳ Generating...';
 
   try {
-    const res = await fetch(`/api/releases/${currentTag}/generate`, { method: 'POST' });
+    const res = await fetch(`/api/releases/${currentRelease}/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderedIds: orderedIds || undefined, label: newsletterLabel || undefined }),
+    });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Generation failed');
     const filename = data.zipPath.split('/').pop();
@@ -809,9 +1701,10 @@ function uploadImage(featureId, file) {
     if (res.ok) {
       zone.classList.add('has-image');
       zone.innerHTML = `<img src="${dataUrl}" alt="" /><button class="drop-remove" onclick="event.stopPropagation();removeImage(${featureId})" title="Remove">✕</button><input type="file" id="imgfile-${featureId}" accept="image/*" style="display:none" onchange="handleImageFile(event,${featureId})" />`;
-      // update in allFeatures
-      const f = allFeatures.find(x => x.id === featureId);
-      if (f) f.has_image = true;
+      [allFeatures, nlFeatures].forEach(arr => {
+        const f = arr.find(x => x.id === featureId);
+        if (f) f.has_image = true;
+      });
       showToast('Image saved', 'success');
     } else {
       zone.innerHTML = `<span style="font-size:10px;color:#e00;">Failed</span>`;
@@ -826,8 +1719,10 @@ async function removeImage(featureId) {
   zone.classList.remove('has-image');
   zone.innerHTML = `<span style="font-size:18px;line-height:1;">+</span><span>image</span><input type="file" id="imgfile-${featureId}" accept="image/*" style="display:none" onchange="handleImageFile(event,${featureId})" />`;
   zone.onclick = (e) => { e.stopPropagation(); document.getElementById(`imgfile-${featureId}`).click(); };
-  const f = allFeatures.find(x => x.id === featureId);
-  if (f) f.has_image = false;
+  [allFeatures, nlFeatures].forEach(arr => {
+    const f = arr.find(x => x.id === featureId);
+    if (f) f.has_image = false;
+  });
   showToast('Image removed');
 }
 
@@ -850,8 +1745,386 @@ function showToast(msg, type = '') {
   toastTimer = setTimeout(() => el.className = '', 3000);
 }
 
+
+// ── Inline description editing ────────────────────────
+function editDescription(id, el) {
+  const current = el.textContent;
+  let done = false;
+
+  const ta = document.createElement('textarea');
+  ta.value = current;
+  ta.className = 'desc-textarea';
+  ta.onclick = e => e.stopPropagation();
+  el.replaceWith(ta);
+  ta.focus();
+
+  function makeDescDiv(text) {
+    const div = document.createElement('div');
+    div.className = 'feature-desc';
+    div.title = 'Click to edit';
+    div.textContent = text;
+    div.onclick = e => { e.stopPropagation(); editDescription(id, div); };
+    return div;
+  }
+
+  async function finish(save) {
+    if (done) return;
+    done = true;
+    const newDesc = ta.value.trim();
+    if (save && newDesc && newDesc !== current) {
+      await fetch(`/api/features/${id}/description`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: newDesc }),
+      });
+      [allFeatures, nlFeatures].forEach(arr => {
+        const f = arr.find(x => x.id === id);
+        if (f) f.description = newDesc;
+      });
+      ta.replaceWith(makeDescDiv(newDesc));
+      showToast('Description saved', 'success');
+    } else {
+      ta.replaceWith(makeDescDiv(current));
+    }
+  }
+
+  ta.addEventListener('blur', () => finish(true));
+  ta.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); finish(true); }
+  });
+}
+
+// ── Month label util ──────────────────────────────────
+function fmtMonthLabel(monthKey) {
+  if (!monthKey) return '';
+  const [year, month] = monthKey.split('-');
+  return new Date(Number(year), Number(month) - 1, 1)
+    .toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+}
+
+// ── Sidebar section toggle ────────────────────────────
+function toggleSidebarSection(section) {
+  sidebarCollapsed[section] = !sidebarCollapsed[section];
+  document.getElementById(`${section}-section-body`).classList.toggle('collapsed', sidebarCollapsed[section]);
+  document.getElementById(`sec-chev-${section}`).classList.toggle('open', !sidebarCollapsed[section]);
+}
+
+// ── Context re-render helper ──────────────────────────
+function rerenderCurrentPanel() {
+  if (currentNewsletter) renderNewsletterPanel();
+  else renderFeatures();
+}
+
+// ── Newsletter sidebar ────────────────────────────────
+async function loadNewsletters() {
+  const res = await fetch('/api/newsletters');
+  const newsletters = await res.json();
+  allNewsletters = newsletters;
+  renderNewsletterSidebarList();
+}
+
+function renderNewsletterSidebarList() {
+  const el = document.getElementById('newsletter-list');
+  if (!allNewsletters.length) {
+    el.innerHTML = '<div style="padding:12px 16px;font-size:13px;color:#aaa;">No changelogs yet.<br>Assign features to a month from a Release.</div>';
+    return;
+  }
+  el.innerHTML = allNewsletters.map(n => `
+    <div class="release-item" data-month="${escHtml(n.newsletter_month)}" onclick="loadNewsletter('${escHtml(n.newsletter_month)}')">
+      <div>
+        <div class="release-tag">${escHtml(fmtMonthLabel(n.newsletter_month))}</div>
+        <div class="release-meta">${n.feature_count} feature${n.feature_count !== 1 ? 's' : ''}</div>
+      </div>
+      <span class="release-badge ${n.feature_count === 0 ? 'zero' : ''}">${n.feature_count}</span>
+    </div>
+  `).join('');
+}
+
+// ── Newsletter main panel ─────────────────────────────
+async function loadNewsletter(month) {
+  currentNewsletter = month;
+  currentRelease = null;
+
+  document.querySelectorAll('.release-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.month === month);
+  });
+
+  const panel = document.getElementById('main-panel');
+  panel.innerHTML = '<div class="loading">Loading…</div>';
+
+  const res = await fetch(`/api/newsletters/${encodeURIComponent(month)}/features`);
+  const { features } = await res.json();
+  nlFeatures = features;
+
+  renderNewsletterPanel();
+}
+
+function renderNewsletterPanel() {
+  const panel = document.getElementById('main-panel');
+  const label = fmtMonthLabel(currentNewsletter);
+
+  const cardsHtml = nlFeatures.length
+    ? `<div class="nl-list" id="nl-feature-list">${nlFeatures.map((f, i) => nlFeatureCard(f, i)).join('')}</div>`
+    : `<div class="empty"><div class="empty-icon">📭</div><p>No features yet — assign some from a Release.</p></div>`;
+
+  panel.innerHTML = `
+    <div class="main-header">
+      <div>
+        <h2>${escHtml(label)}</h2>
+        <div class="meta">${nlFeatures.length} feature${nlFeatures.length !== 1 ? 's' : ''}</div>
+      </div>
+      <div class="actions">
+        <span style="font-size:12px;color:#aaa;">Drag to reorder</span>
+      </div>
+    </div>
+    ${cardsHtml}
+    <div style="height:80px"></div>
+  `;
+
+  renderNewsletterBar();
+}
+
+function renderNewsletterBar() {
+  document.querySelector('.nl-bar')?.remove();
+  const bar = document.createElement('div');
+  bar.className = 'selection-bar nl-bar';
+  const count = nlFeatures.length;
+  bar.innerHTML = `
+    <span class="selection-count"><strong>${count}</strong> feature${count !== 1 ? 's' : ''} in changelog</span>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <div class="newsletter-label-wrap">
+        <span class="newsletter-label-prefix">Label:</span>
+        <input class="newsletter-label-input" type="text" value="${escHtml(fmtMonthLabel(currentNewsletter))}" placeholder="e.g. June 2026" id="nl-label-input" title="Label shown in the email" />
+      </div>
+      <button class="btn btn-success" ${count === 0 ? 'disabled' : ''} onclick="generateNewsletterZip()">⚡ Generate ZIP</button>
+    </div>
+  `;
+  document.getElementById('main-panel').appendChild(bar);
+}
+
+async function generateNewsletterZip() {
+  const btn = document.querySelector('.nl-bar .btn-success');
+  btn.disabled = true;
+  btn.textContent = '⏳ Generating…';
+
+  const orderedIds = nlFeatures.map(f => f.id);
+  const label = document.getElementById('nl-label-input')?.value || fmtMonthLabel(currentNewsletter);
+
+  try {
+    const res = await fetch(`/api/newsletters/${encodeURIComponent(currentNewsletter)}/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderedIds, label }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Generation failed');
+    const filename = data.zipPath.split('/').pop();
+    btn.textContent = '✓ Generated';
+    btn.disabled = true;
+    const dl = document.createElement('a');
+    dl.href = data.downloadUrl;
+    dl.download = filename;
+    dl.className = 'btn btn-success';
+    dl.style.textDecoration = 'none';
+    dl.textContent = `⬇ Download ${filename}`;
+    btn.replaceWith(dl);
+  } catch (err) {
+    showToast(err.message, 'error');
+    btn.textContent = '⚡ Generate ZIP';
+    btn.disabled = false;
+  }
+}
+
+// ── Newsletter feature card ───────────────────────────
+function nlFeatureCard(f, i) {
+  const type = inferType(f);
+  const imgZoneInner = f.has_image
+    ? `<img src="/api/features/${f.id}/image?t=${Date.now()}" alt="" /><button class="drop-remove" onclick="event.stopPropagation();removeImage(${f.id})" title="Remove">✕</button>`
+    : `<span style="font-size:18px;line-height:1;">+</span><span>image</span>`;
+  return `
+    <div class="feature-card selected" id="card-${f.id}"
+      draggable="true"
+      ondragstart="nlDragStart(event,${f.id})"
+      ondragover="event.preventDefault();nlDragOver(event,${f.id})"
+      ondrop="nlDragDrop(event,${f.id})"
+      ondragend="nlDragEnd()">
+      <span class="nl-drag-handle" onclick="event.stopPropagation()">&#8942;&#8942;</span>
+      <span class="nl-pos-num">${i + 1}</span>
+      <div class="feature-body">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:5px;">
+          <span class="feature-type-badge ${type}">${type === 'fix' ? 'Fix' : 'Feature'}</span>
+          <span class="release-tag-pill">${escHtml(f.release_tag)}</span>
+          ${categorySelectHtml(f)}
+          ${flagPillsHtml(f)}
+        </div>
+        <div class="feature-title">${escHtml(f.title)}</div>
+        <div class="feature-desc" title="Click to edit" onclick="event.stopPropagation();editDescription(${f.id},this)">${escHtml(f.description)}</div>
+        ${docsRowHtml(f)}
+      </div>
+      <div class="feature-img-drop ${f.has_image ? 'has-image' : ''}" id="imgdrop-${f.id}"
+        ondragover="event.preventDefault();event.stopPropagation();document.getElementById('imgdrop-${f.id}').classList.add('drag-over')"
+        ondragleave="document.getElementById('imgdrop-${f.id}').classList.remove('drag-over')"
+        ondrop="event.stopPropagation();handleImageDrop(event,${f.id})"
+        onclick="event.stopPropagation();document.getElementById('imgfile-${f.id}').click()"
+        title="Drop image or click to upload">
+        ${imgZoneInner}
+        <input type="file" id="imgfile-${f.id}" accept="image/*" style="display:none" onchange="handleImageFile(event,${f.id})" />
+      </div>
+      <div class="feature-priority">
+        <button class="remove-btn" onclick="event.stopPropagation();removeFromNewsletter(${f.id})">Remove</button>
+      </div>
+    </div>
+  `;
+}
+
+// ── Newsletter drag reorder ───────────────────────────
+function nlDragStart(event, id) {
+  nlDragSrcId = id;
+  event.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => {
+    document.getElementById(`card-${id}`)?.classList.add('dragging');
+    document.getElementById('nl-feature-list')?.classList.add('is-dragging');
+  }, 0);
+}
+
+function nlDragOver(event, id) {
+  event.preventDefault();
+  event.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('#nl-feature-list .feature-card').forEach(el => el.classList.remove('drag-target'));
+  if (id !== nlDragSrcId) document.getElementById(`card-${id}`)?.classList.add('drag-target');
+}
+
+function nlDragDrop(event, targetId) {
+  event.preventDefault();
+  if (!nlDragSrcId || nlDragSrcId === targetId) return;
+
+  const srcIdx = nlFeatures.findIndex(f => f.id === nlDragSrcId);
+  const tgtIdx = nlFeatures.findIndex(f => f.id === targetId);
+  if (srcIdx === -1 || tgtIdx === -1) return;
+
+  const [moved] = nlFeatures.splice(srcIdx, 1);
+  nlFeatures.splice(tgtIdx, 0, moved);
+
+  nlFeatures.forEach((f, i) => {
+    f.newsletter_priority = i * 10;
+    fetch(`/api/features/${f.id}/newsletter-priority`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ priority: i * 10 }),
+    });
+  });
+
+  nlDragSrcId = null;
+  renderNewsletterPanel();
+  showToast('Order saved');
+}
+
+function nlDragEnd() {
+  document.querySelectorAll('#nl-feature-list .feature-card').forEach(el => el.classList.remove('drag-target', 'dragging'));
+  document.getElementById('nl-feature-list')?.classList.remove('is-dragging');
+  nlDragSrcId = null;
+}
+
+async function removeFromNewsletter(id) {
+  await fetch(`/api/features/${id}/newsletter`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ newsletter_month: null }),
+  });
+  nlFeatures = nlFeatures.filter(x => x.id !== id);
+  const af = allFeatures.find(x => x.id === id);
+  if (af) af.newsletter_month = null;
+  await loadNewsletters();
+  renderNewsletterPanel();
+  showToast('Removed from changelog');
+}
+
+// ── Assign to newsletter (from Release view) ──────────
+function assignBtnHtml(f) {
+  if (f.newsletter_month) {
+    const safeMonth = f.newsletter_month.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const moveOptions = allNewsletters
+      .filter(n => n.newsletter_month !== f.newsletter_month)
+      .map(n => {
+        const sm = n.newsletter_month.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        return `<button class="assign-option" onclick="event.stopPropagation();assignToNewsletter(${f.id},'${sm}')">${escHtml(fmtMonthLabel(n.newsletter_month))}</button>`;
+      }).join('');
+    return `
+      <div style="position:relative;">
+        <button class="assign-pill" onclick="event.stopPropagation();toggleAssignDropdown(${f.id})">📅 ${escHtml(fmtMonthLabel(f.newsletter_month))} ▾</button>
+        <div class="assign-dropdown" id="assign-drop-${f.id}">
+          ${moveOptions ? `<div class="assign-dropdown-label">Move to</div>${moveOptions}` : ''}
+          <button class="assign-option" onclick="event.stopPropagation();showInlineMonthPicker(${f.id})">+ New month…</button>
+          <div id="month-picker-${f.id}"></div>
+          <div style="border-top:1px solid #f5f5f5;margin:4px 0;"></div>
+          <button class="assign-option" style="color:#ef4444;" onclick="event.stopPropagation();assignToNewsletter(${f.id},null)">✕ Remove from changelog</button>
+        </div>
+      </div>`;
+  }
+  const addOptions = allNewsletters
+    .map(n => {
+      const sm = n.newsletter_month.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      return `<button class="assign-option" onclick="event.stopPropagation();assignToNewsletter(${f.id},'${sm}')">${escHtml(fmtMonthLabel(n.newsletter_month))}</button>`;
+    }).join('');
+  return `
+    <div style="position:relative;">
+      <button class="assign-btn" onclick="event.stopPropagation();toggleAssignDropdown(${f.id})">+ Month ▾</button>
+      <div class="assign-dropdown" id="assign-drop-${f.id}">
+        ${addOptions ? `<div class="assign-dropdown-label">Add to month</div>${addOptions}` : ''}
+        <button class="assign-option" onclick="event.stopPropagation();showInlineMonthPicker(${f.id})">+ New month…</button>
+        <div id="month-picker-${f.id}"></div>
+      </div>
+    </div>`;
+}
+
+function toggleAssignDropdown(featureId) {
+  const drop = document.getElementById(`assign-drop-${featureId}`);
+  if (!drop) return;
+  const isOpen = drop.style.display === 'block';
+  document.querySelectorAll('.assign-dropdown, .move-dropdown').forEach(d => d.style.display = 'none');
+  if (!isOpen) drop.style.display = 'block';
+}
+
+function showInlineMonthPicker(featureId) {
+  const picker = document.getElementById(`month-picker-${featureId}`);
+  if (!picker) return;
+  picker.innerHTML = `
+    <div style="padding:6px 10px;display:flex;gap:6px;align-items:center;" onclick="event.stopPropagation()">
+      <input type="month" id="month-pick-${featureId}" style="flex:1;font-size:12px;padding:4px 8px;border:1px solid #d5d5d5;border-radius:6px;outline:none;" />
+      <button class="docs-save-btn" onclick="event.stopPropagation();confirmNewMonth(${featureId})">Add</button>
+    </div>`;
+  setTimeout(() => document.getElementById(`month-pick-${featureId}`)?.focus(), 0);
+}
+
+function confirmNewMonth(featureId) {
+  const val = document.getElementById(`month-pick-${featureId}`)?.value;
+  if (val) assignToNewsletter(featureId, val);
+}
+
+async function assignToNewsletter(featureId, month) {
+  await fetch(`/api/features/${featureId}/newsletter`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ newsletter_month: month }),
+  });
+  [allFeatures, nlFeatures].forEach(arr => {
+    const f = arr.find(x => x.id === featureId);
+    if (f) f.newsletter_month = month;
+  });
+  document.querySelectorAll('.assign-dropdown').forEach(d => d.style.display = 'none');
+  await loadNewsletters();
+  rerenderCurrentPanel();
+  showToast(month ? `Added to ${fmtMonthLabel(month)}` : 'Removed from changelog', 'success');
+}
+
+document.addEventListener('click', () => {
+  document.querySelectorAll('.assign-dropdown, .move-dropdown').forEach(d => d.style.display = 'none');
+});
+
 // ── Init ───────────────────────────────────────────────
 loadReleases();
+loadNewsletters();
 </script>
 </body>
 </html>

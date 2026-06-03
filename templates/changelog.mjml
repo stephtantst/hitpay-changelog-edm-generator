@@ -1,5 +1,6 @@
 <mjml>
   <mj-head>
+    <mj-preview>{{preview_text}}</mj-preview>
     <mj-font name="Inter" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
     <mj-attributes>
       <mj-all font-family="Inter, -apple-system, Arial, sans-serif" />
@@ -16,11 +17,6 @@
         font-size: 13px;
         font-weight: 600;
         letter-spacing: 0.3px;
-      }
-      .section-divider {
-        border: none;
-        border-top: 1px solid #e8e8e8;
-        margin: 0;
       }
       a { color: #2563EB; }
     </mj-style>
@@ -84,75 +80,24 @@
       </mj-column>
     </mj-section>
 
-    <!-- Feature 1 -->
-    {{#if features.[0]}}
+    <!-- Features (dynamic, no limit) -->
+    {{#each features}}
     <mj-section background-color="#ffffff" padding="8px 48px 24px">
       <mj-column>
-        <mj-text font-size="11px" font-weight="600" color="#5B5BD6" padding="0 0 6px 0" letter-spacing="0.4px">{{features.[0].tag}}</mj-text>
-        <mj-text font-size="17px" font-weight="700" padding="0 0 8px 0">{{features.[0].title}}</mj-text>
-        <mj-text color="#444444" padding="0 0 16px 0">{{features.[0].description}}</mj-text>
-        {{#if features.[0].mockupImage}}
-        <mj-image src="{{features.[0].mockupImage}}" border-radius="10px" padding="0" fluid-on-mobile="true" alt="{{features.[0].title}}" />
+        <mj-text font-size="11px" font-weight="600" color="#2465DE" padding="0 0 6px 0" letter-spacing="0.4px">{{tag}}{{#if flags}} &nbsp;{{flags}}{{/if}}</mj-text>
+        <mj-text font-size="17px" font-weight="700" padding="0 0 8px 0">{{title}}</mj-text>
+        <mj-text color="#444444" padding="0 0 12px 0">{{description}}</mj-text>
+        {{#if docsUrl}}
+        <mj-text align="right" padding="0 0 16px 0">
+          <a href="{{docsUrl}}" style="color:#2465DE;font-weight:600;text-decoration:none;font-size:14px;">Learn more →</a>
+        </mj-text>
+        {{/if}}
+        {{#if mockupImage}}
+        <mj-image src="{{mockupImage}}" border-radius="10px" padding="0" fluid-on-mobile="true" alt="{{title}}" />
         {{/if}}
       </mj-column>
     </mj-section>
-    {{/if}}
-
-    <!-- Feature 2 -->
-    {{#if features.[1]}}
-    <mj-section background-color="#ffffff" padding="8px 48px 24px">
-      <mj-column>
-        <mj-text font-size="11px" font-weight="600" color="#5B5BD6" padding="0 0 6px 0" letter-spacing="0.4px">{{features.[1].tag}}</mj-text>
-        <mj-text font-size="17px" font-weight="700" padding="0 0 8px 0">{{features.[1].title}}</mj-text>
-        <mj-text color="#444444" padding="0 0 16px 0">{{features.[1].description}}</mj-text>
-        {{#if features.[1].mockupImage}}
-        <mj-image src="{{features.[1].mockupImage}}" border-radius="10px" padding="0" fluid-on-mobile="true" alt="{{features.[1].title}}" />
-        {{/if}}
-      </mj-column>
-    </mj-section>
-    {{/if}}
-
-    <!-- Feature 3 -->
-    {{#if features.[2]}}
-    <mj-section background-color="#ffffff" padding="8px 48px 24px">
-      <mj-column>
-        <mj-text font-size="11px" font-weight="600" color="#5B5BD6" padding="0 0 6px 0" letter-spacing="0.4px">{{features.[2].tag}}</mj-text>
-        <mj-text font-size="17px" font-weight="700" padding="0 0 8px 0">{{features.[2].title}}</mj-text>
-        <mj-text color="#444444" padding="0 0 16px 0">{{features.[2].description}}</mj-text>
-        {{#if features.[2].mockupImage}}
-        <mj-image src="{{features.[2].mockupImage}}" border-radius="10px" padding="0" fluid-on-mobile="true" alt="{{features.[2].title}}" />
-        {{/if}}
-      </mj-column>
-    </mj-section>
-    {{/if}}
-
-    <!-- Feature 4 -->
-    {{#if features.[3]}}
-    <mj-section background-color="#ffffff" padding="8px 48px 24px">
-      <mj-column>
-        <mj-text font-size="11px" font-weight="600" color="#5B5BD6" padding="0 0 6px 0" letter-spacing="0.4px">{{features.[3].tag}}</mj-text>
-        <mj-text font-size="17px" font-weight="700" padding="0 0 8px 0">{{features.[3].title}}</mj-text>
-        <mj-text color="#444444" padding="0 0 16px 0">{{features.[3].description}}</mj-text>
-        {{#if features.[3].mockupImage}}
-        <mj-image src="{{features.[3].mockupImage}}" border-radius="10px" padding="0" fluid-on-mobile="true" alt="{{features.[3].title}}" />
-        {{/if}}
-      </mj-column>
-    </mj-section>
-    {{/if}}
-
-    <!-- Feature 5 -->
-    {{#if features.[4]}}
-    <mj-section background-color="#ffffff" padding="8px 48px 24px">
-      <mj-column>
-        <mj-text font-size="11px" font-weight="600" color="#5B5BD6" padding="0 0 6px 0" letter-spacing="0.4px">{{features.[4].tag}}</mj-text>
-        <mj-text font-size="17px" font-weight="700" padding="0 0 8px 0">{{features.[4].title}}</mj-text>
-        <mj-text color="#444444" padding="0 0 16px 0">{{features.[4].description}}</mj-text>
-        {{#if features.[4].mockupImage}}
-        <mj-image src="{{features.[4].mockupImage}}" border-radius="10px" padding="0" fluid-on-mobile="true" alt="{{features.[4].title}}" />
-        {{/if}}
-      </mj-column>
-    </mj-section>
-    {{/if}}
+    {{/each}}
 
     <!-- Sign-off -->
     <mj-section background-color="#ffffff" padding="8px 48px 40px">
@@ -199,7 +144,7 @@
           </table>
         </mj-raw>
         <mj-text font-size="10px" color="#cbcdd4" align="center" line-height="1.5" padding="0">
-          <a href="{unsubscribeUrl}" style="color:#6b7280;text-decoration:underline;font-size:10px;">Unsubscribe</a>
+          <a href="{unsubscribe_link}" style="color:#6b7280;text-decoration:none;font-size:9px;">Unsubscribe</a>
         </mj-text>
       </mj-column>
     </mj-section>

@@ -27,8 +27,17 @@ export async function generateMockup(screenshotPath: string, outputName: string)
 
   try {
     const page = await browser.newPage();
-    await page.setViewport({ width: 1200, height: 750, deviceScaleFactor: 2 });
+    await page.setViewport({ width: 1200, height: 800, deviceScaleFactor: 2 });
     await page.setContent(html, { waitUntil: 'networkidle0' });
+
+    // Measure the true content height (body padding + card) and resize the
+    // viewport to match exactly — prevents Chrome from padding the capture
+    // with empty space up to the initial viewport height.
+    const contentHeight = await page.evaluate(() => {
+      document.body.style.display = 'inline-flex';
+      return document.body.getBoundingClientRect().height;
+    });
+    await page.setViewport({ width: 1200, height: Math.ceil(contentHeight), deviceScaleFactor: 2 });
 
     const outputPath = path.join(OUTPUT_DIR, `${outputName}.png`);
     await page.screenshot({ path: outputPath as `${string}.png`, type: 'png' });
