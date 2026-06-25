@@ -3,5 +3,4 @@ dist/
 output/
 .env
 *.local
-data/
 screenshots/v*/
