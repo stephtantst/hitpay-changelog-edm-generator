@@ -11,7 +11,8 @@
     "preview": "ts-node src/index.ts --dry-run",
     "analyze": "ts-node src/analyze-releases.ts",
     "enrich": "ts-node src/enrich-descriptions.ts",
-    "server": "ts-node src/server.ts"
+    "server": "ts-node src/server.ts",
+    "save": "git add data/edm.db && git commit -m 'db: save' && git push"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.36.0",
