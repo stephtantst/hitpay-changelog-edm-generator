@@ -8,16 +8,24 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import { queries, Feature } from './db';
+import { queries, Feature, Release } from './db';
 import { fetchReleasePRs, enrichFeatures, applyEnrichedDescriptions, matchToPR } from './enrich-utils';
+import { rawTagFrom, repoKeyFromTag } from './repos';
 
 
 async function main() {
   const tag = process.argv[2];
-  if (!tag || !/^v\d+\.\d+$/.test(tag)) {
-    console.error('Usage: ts-node src/enrich-descriptions.ts v79.0');
+  if (!tag) {
+    console.error('Usage: ts-node src/enrich-descriptions.ts v79.0   (or android:v12.0 / ios:v3.0)');
     process.exit(1);
   }
+
+  const release = queries.getReleaseByTag.get(tag) as Release | undefined;
+  if (!release) {
+    console.error(`Release ${tag} not found in DB — run analyze-releases first.`);
+    process.exit(1);
+  }
+  const repoKey = repoKeyFromTag(tag);
 
   const isFix = (f: Feature) =>
     /\b(fix(es|ed)?|bug|patch|resolv|correct(ed)?|issu|broken|crash|error|revert)\b/i.test(f.title + ' ' + f.description);
@@ -27,7 +35,7 @@ async function main() {
   console.log(`\nEnriching ${features.length} features for ${tag}...\n`);
 
   // Fetch release PRs
-  const prs = await fetchReleasePRs(tag);
+  const prs = await fetchReleasePRs(rawTagFrom(tag), repoKey);
   console.log(`  Found ${prs.length} PRs in release body`);
 
   let matched = 0;
@@ -39,7 +47,7 @@ async function main() {
   console.log(`\n  Matched ${matched}/${features.length} features to PRs`);
 
   console.log('\n  Calling Claude to enrich descriptions...');
-  const enriched = await enrichFeatures(features, prs);
+  const enriched = await enrichFeatures(features, prs, repoKey);
   applyEnrichedDescriptions(enriched);
 
   console.log(`\n  ✓ Updated ${enriched.length} descriptions in DB`);

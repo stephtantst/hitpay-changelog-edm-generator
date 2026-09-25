@@ -221,6 +221,22 @@ app.patch('/api/features/:id/docs-url', (req, res) => {
   res.json({ ok: true });
 });
 
+// PATCH /api/features/:id/flags  { flags_override: string | null }
+// null = revert to auto-detect; "" = force no flags; "singapore,malaysia" = those countries
+app.patch('/api/features/:id/flags', (req, res) => {
+  const { flags_override } = req.body as { flags_override: string | null };
+  queries.updateFlagsOverride.run({ flags_override: flags_override ?? null, id: Number(req.params.id) });
+  res.json({ ok: true });
+});
+
+// PATCH /api/features/:id/title  { title: string }
+app.patch('/api/features/:id/title', (req, res) => {
+  const { title } = req.body as { title: string };
+  if (!title?.trim()) { res.status(400).json({ error: 'Title required' }); return; }
+  db.prepare('UPDATE features SET title = ? WHERE id = ?').run(title.trim(), Number(req.params.id));
+  res.json({ ok: true });
+});
+
 // PATCH /api/features/:id/description  { description: string }
 app.patch('/api/features/:id/description', (req, res) => {
   const { description } = req.body as { description: string };
@@ -233,6 +249,13 @@ app.patch('/api/features/:id/description', (req, res) => {
 app.patch('/api/features/:id/category', (req, res) => {
   const { product_area } = req.body as { product_area: string };
   db.prepare('UPDATE features SET product_area = ? WHERE id = ?').run(product_area, Number(req.params.id));
+  res.json({ ok: true });
+});
+
+// PATCH /api/features/:id/platform  { platform: 'web' | 'android' | 'ios' }
+app.patch('/api/features/:id/platform', (req, res) => {
+  const { platform } = req.body as { platform: string };
+  queries.updatePlatform.run({ platform, id: Number(req.params.id) });
   res.json({ ok: true });
 });
 
@@ -250,6 +273,13 @@ app.patch('/api/features/:id/month', (req, res) => {
 
   db.prepare('UPDATE features SET release_tag = ? WHERE id = ?').run(release.tag, Number(req.params.id));
   res.json({ ok: true, release_tag: release.tag });
+});
+
+// PATCH /api/releases/:tag/hidden  { is_hidden: 0|1 }
+app.patch('/api/releases/:tag/hidden', (req, res) => {
+  const { is_hidden } = req.body as { is_hidden: number };
+  queries.updateReleaseHidden.run({ tag: req.params.tag, is_hidden });
+  res.json({ ok: true });
 });
 
 // POST /api/releases/:tag/select-all
@@ -292,9 +322,7 @@ app.post('/api/releases/:tag/generate', async (req, res) => {
   const tag = req.params.tag;
   const { orderedIds, label } = req.body as { orderedIds?: number[]; label?: string };
 
-  let selected = queries.getSelectedFeaturesByTag.all(tag) as Array<{
-    id: number; release_tag: string; product_area: string; title: string; description: string;
-  }>;
+  let selected = queries.getSelectedFeaturesByTag.all(tag) as Feature[];
 
   if (orderedIds?.length) {
     const featMap = new Map(selected.map(f => [f.id, f]));
@@ -335,6 +363,29 @@ app.get('/api/newsletters/:month/features', (req, res) => {
   res.json({ features });
 });
 
+// POST /api/newsletters/:month/features  { product_area, title, description, platform }
+app.post('/api/newsletters/:month/features', (req, res) => {
+  const { month } = req.params;
+  const { product_area, title, description, platform } = req.body as { product_area: string; title: string; description: string; platform?: string };
+  if (!product_area?.trim() || !title?.trim() || !description?.trim()) {
+    res.status(400).json({ error: 'product_area, title, and description are required' });
+    return;
+  }
+
+  const { max_priority } = queries.getMaxNewsletterPriority.get(month) as { max_priority: number };
+  const info = queries.insertManualFeature.run({
+    product_area: product_area.trim(),
+    title: title.trim(),
+    description: description.trim(),
+    newsletter_month: month,
+    newsletter_priority: max_priority + 10,
+    platform: platform?.trim() || 'web',
+  });
+
+  const feature = queries.getFeatureById.get(info.lastInsertRowid) as Feature;
+  res.json({ ok: true, feature: { ...feature, has_image: false } });
+});
+
 // PATCH /api/features/:id/newsletter  { newsletter_month: string | null }
 app.patch('/api/features/:id/newsletter', (req, res) => {
   const { newsletter_month } = req.body as { newsletter_month: string | null };
@@ -342,7 +393,7 @@ app.patch('/api/features/:id/newsletter', (req, res) => {
   if (newsletter_month) {
     queries.assignFeatureToNewsletter.run({ newsletter_month, id });
   } else {
-    queries.unassignFeatureFromNewsletter.run(id);
+    queries.unassignFeatureFromNewsletter.run({ id });
   }
   res.json({ ok: true });
 });
@@ -357,7 +408,7 @@ app.patch('/api/features/:id/newsletter-priority', (req, res) => {
 // POST /api/newsletters/:month/generate
 app.post('/api/newsletters/:month/generate', async (req, res) => {
   const { month } = req.params;
-  const { orderedIds } = req.body as { orderedIds?: number[] };
+  const { orderedIds, previewText } = req.body as { orderedIds?: number[]; previewText?: string };
 
   let selected = queries.getFeaturesByNewsletterMonth.all(month) as Feature[];
 
@@ -384,7 +435,7 @@ app.post('/api/newsletters/:month/generate', async (req, res) => {
         description: f.description,
         docs_url: f.docs_url,
       })),
-      { label }
+      { label, ...(previewText?.trim() ? { previewText: previewText.trim() } : {}) }
     );
     const filename = path.basename(zipPath);
     res.json({ ok: true, zipPath, downloadUrl: `/download/${filename}` });

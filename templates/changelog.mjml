@@ -113,6 +113,15 @@
       </mj-column>
     </mj-section>
 
+    <!-- Feedback prompt -->
+    <mj-section background-color="#f8f9fb" padding="20px 48px">
+      <mj-column>
+        <mj-text align="center" color="#555555" font-size="14px" line-height="1.6">
+          Got feedback on your experience so far — good or bad? Just reply to this email, we're here to listen.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
     <!-- Help banner -->
     <mj-section background-color="#ffffff" padding="0 0 0 0">
       <mj-column padding="0">

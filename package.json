@@ -10,6 +10,8 @@
     "mockup": "ts-node src/mockup-generator.ts",
     "preview": "ts-node src/index.ts --dry-run",
     "analyze": "ts-node src/analyze-releases.ts",
+    "analyze:android": "ts-node src/analyze-releases.ts --repo=android",
+    "analyze:ios": "ts-node src/analyze-releases.ts --repo=ios",
     "enrich": "ts-node src/enrich-descriptions.ts",
     "server": "ts-node src/server.ts",
     "save": "git add data/edm.db && git commit -m 'db: save' && git push"

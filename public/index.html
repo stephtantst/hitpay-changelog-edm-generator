@@ -70,6 +70,7 @@
     background: #f0f0ff;
     border-left-color: #5B5BD6;
   }
+  .release-item.is-hidden { opacity: 0.55; background: #fafafa; }
   .release-tag { font-size: 14px; font-weight: 600; }
   .release-meta { font-size: 11px; color: #999; }
   .release-tag-pill {
@@ -285,6 +286,8 @@
     transition: background 0.1s;
   }
   .feature-desc:hover { background: #f5f5f7; }
+  .feature-title { cursor: text; border-radius: 4px; transition: background 0.1s; }
+  .feature-title:hover { background: #f5f5f7; }
   .desc-textarea {
     width: 100%;
     font-size: 13px;
@@ -844,6 +847,88 @@
     white-space: nowrap;
   }
   .remove-btn:hover { border-color: #f87171; color: #ef4444; background: #fff5f5; }
+
+  /* ── Flag editor ── */
+  .flag-editor-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .flag-edit-btn {
+    background: none;
+    border: none;
+    padding: 0 3px;
+    font-size: 10px;
+    color: #ccc;
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.1s;
+    vertical-align: middle;
+  }
+  .flag-edit-btn:hover { color: #5B5BD6; }
+  .flag-edit-btn.has-override { color: #5B5BD6; }
+  .flag-popover {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.14);
+    z-index: 200;
+    min-width: 170px;
+    padding-bottom: 4px;
+  }
+  .flag-popover-header {
+    font-size: 10px;
+    font-weight: 600;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 8px 12px 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .flag-auto-badge {
+    font-size: 9px;
+    background: #ededfc;
+    color: #5B5BD6;
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .flag-popover-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.1s;
+    user-select: none;
+  }
+  .flag-popover-item:hover { background: #f5f5f7; }
+  .flag-popover-item input[type=checkbox] { accent-color: #5B5BD6; cursor: pointer; }
+  .flag-reset-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 6px 12px;
+    font-size: 11px;
+    color: #888;
+    border: none;
+    border-top: 1px solid #f0f0f0;
+    background: none;
+    cursor: pointer;
+    margin-top: 4px;
+    transition: color 0.1s;
+  }
+  .flag-reset-btn:hover { color: #5B5BD6; }
 </style>
 </head>
 <body>
@@ -861,6 +946,11 @@
       <h2>Releases</h2>
     </div>
     <div id="releases-section-body" class="sidebar-section-body">
+      <div style="display:flex;gap:4px;padding:8px 12px 4px;">
+        <button class="btn btn-ghost" id="rel-filter-all" onclick="setReleasePlatformFilter('all')" style="border-color:#5B5BD6;color:#5B5BD6;padding:2px 8px;font-size:12px;">All</button>
+        <button class="btn btn-ghost" id="rel-filter-web" onclick="setReleasePlatformFilter('web')" style="padding:2px 8px;font-size:12px;">🌐 Web</button>
+        <button class="btn btn-ghost" id="rel-filter-mobile" onclick="setReleasePlatformFilter('mobile')" style="padding:2px 8px;font-size:12px;">📱 Mobile</button>
+      </div>
       <div id="release-list"><div class="loading">Loading...</div></div>
     </div>
 
@@ -888,6 +978,8 @@ let currentRelease = null;
 let allFeatures = [];
 let allReleases = [];
 let activeFilter = 'all';
+let releasePlatformFilter = 'all';
+let nlPlatformFilter = 'all';
 let searchQuery = '';
 let selectedSectionOpen = true;
 let selDragSrcId = null;
@@ -900,6 +992,8 @@ let allNewsletters = [];
 let nlFeatures = [];
 let nlDragSrcId = null;
 const sidebarCollapsed = { releases: false, changelog: false };
+let hiddenReleasesOpen = false;
+let addFeatureFormOpen = false;
 
 const CANONICAL_CATEGORIES = [
   'In-Person Payments',
@@ -922,6 +1016,29 @@ const CANONICAL_CATEGORIES = [
   'BillPay',
 ];
 
+const PLATFORM_BADGE = { web: '🌐 Web', android: '📱 Android', ios: '📱 iOS' };
+
+function platformOf(f) { return f.platform || 'web'; }
+
+function platformFromRepo(repo) {
+  if (repo === 'hitpay-android') return 'android';
+  if (repo === 'hitpay-ios') return 'ios';
+  return 'web';
+}
+
+function rawTagFrom(tag) {
+  for (const prefix of ['android-', 'ios-']) {
+    if (tag.startsWith(prefix)) return tag.slice(prefix.length);
+  }
+  return tag;
+}
+
+function matchesPlatformFilter(f, filter) {
+  if (filter === 'all') return true;
+  if (filter === 'mobile') return platformOf(f) === 'android' || platformOf(f) === 'ios';
+  return platformOf(f) === filter;
+}
+
 const COUNTRY_FLAGS = {
   'singapore': '🇸🇬',
   'malaysia': '🇲🇾',
@@ -935,6 +1052,18 @@ const COUNTRY_FLAGS = {
   'india': '🇮🇳',
 };
 
+const COUNTRY_LIST = [
+  { key: 'singapore',      flag: '🇸🇬', label: 'Singapore' },
+  { key: 'malaysia',       flag: '🇲🇾', label: 'Malaysia' },
+  { key: 'hong kong',      flag: '🇭🇰', label: 'Hong Kong' },
+  { key: 'australia',      flag: '🇦🇺', label: 'Australia' },
+  { key: 'united kingdom', flag: '🇬🇧', label: 'UK' },
+  { key: 'indonesia',      flag: '🇮🇩', label: 'Indonesia' },
+  { key: 'thailand',       flag: '🇹🇭', label: 'Thailand' },
+  { key: 'philippines',    flag: '🇵🇭', label: 'Philippines' },
+  { key: 'india',          flag: '🇮🇳', label: 'India' },
+];
+
 function detectFlags(f) {
   const text = (f.title + ' ' + f.description).toLowerCase();
   const seen = new Set();
@@ -943,6 +1072,147 @@ function detectFlags(f) {
     if (text.includes(kw) && !seen.has(flag)) { seen.add(flag); flags.push(flag); }
   }
   return flags;
+}
+
+function autoDetectFlagKeys(f) {
+  const detectedEmoji = new Set(detectFlags(f));
+  return COUNTRY_LIST.filter(c => detectedEmoji.has(c.flag)).map(c => c.key);
+}
+
+function effectiveFlagKeys(f) {
+  if (f.flags_override === null || f.flags_override === undefined) {
+    return autoDetectFlagKeys(f);
+  }
+  return f.flags_override ? f.flags_override.split(',').filter(Boolean) : [];
+}
+
+function safeCountryKey(key) {
+  return key.replace(/[^a-z0-9]/g, '_');
+}
+
+function flagEditorHtml(f) {
+  const isAuto = f.flags_override === null || f.flags_override === undefined;
+  const effectiveKeys = effectiveFlagKeys(f);
+  const pillsHtml = effectiveKeys.map(k => {
+    const c = COUNTRY_LIST.find(x => x.key === k);
+    return c ? `<span class="flag-pill">${c.flag}</span>` : '';
+  }).join('');
+
+  const checkboxes = COUNTRY_LIST.map(c => {
+    const ck = safeCountryKey(c.key);
+    const safeCKey = c.key.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    return `
+      <label class="flag-popover-item" onclick="event.stopPropagation()">
+        <input type="checkbox" id="flag-chk-${f.id}-${ck}" ${effectiveKeys.includes(c.key) ? 'checked' : ''}
+          onclick="event.stopPropagation()"
+          onchange="event.stopPropagation();toggleFlagKey(${f.id},'${safeCKey}',this.checked)" />
+        ${c.flag} ${c.label}
+      </label>`;
+  }).join('');
+
+  return `
+    <div class="flag-editor-wrap" onclick="event.stopPropagation()">
+      <span id="flag-pills-${f.id}">${pillsHtml}</span>
+      <button class="flag-edit-btn${isAuto ? '' : ' has-override'}" onclick="event.stopPropagation();toggleFlagPopover(${f.id})" title="Edit country flags">✏</button>
+      <div class="flag-popover" id="flag-pop-${f.id}" onclick="event.stopPropagation()">
+        <div class="flag-popover-header">
+          Country flags
+          <span id="flag-auto-badge-${f.id}" class="flag-auto-badge" style="${isAuto ? '' : 'display:none'}">auto</span>
+        </div>
+        ${checkboxes}
+        <button class="flag-reset-btn" id="flag-reset-${f.id}" style="${isAuto ? 'display:none' : ''}"
+          onclick="event.stopPropagation();resetFlagsOverride(${f.id})">↺ Reset to auto</button>
+      </div>
+    </div>`;
+}
+
+function toggleFlagPopover(id) {
+  const pop = document.getElementById(`flag-pop-${id}`);
+  if (!pop) return;
+  const isOpen = pop.style.display === 'block';
+  document.querySelectorAll('.flag-popover').forEach(p => p.style.display = 'none');
+  if (!isOpen) pop.style.display = 'block';
+}
+
+function updateFlagPills(id, keys) {
+  const container = document.getElementById(`flag-pills-${id}`);
+  if (!container) return;
+  container.innerHTML = keys.map(k => {
+    const c = COUNTRY_LIST.find(x => x.key === k);
+    return c ? `<span class="flag-pill">${c.flag}</span>` : '';
+  }).join('');
+}
+
+async function toggleFlagKey(id, key, checked) {
+  const f = [...allFeatures, ...nlFeatures].find(x => x.id === id);
+  if (!f) return;
+
+  let currentKeys = effectiveFlagKeys(f);
+  if (checked) {
+    if (!currentKeys.includes(key)) currentKeys.push(key);
+  } else {
+    currentKeys = currentKeys.filter(k => k !== key);
+  }
+
+  const newOverride = currentKeys.join(',');
+  const prevOverride = f.flags_override;
+  f.flags_override = newOverride;
+
+  try {
+    await apiFetch(`/api/features/${id}/flags`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ flags_override: newOverride }),
+    });
+  } catch (err) {
+    f.flags_override = prevOverride;
+    showToast(`Flags not saved: ${err.message}`, 'error');
+    return;
+  }
+
+  updateFlagPills(id, currentKeys);
+
+  const resetBtn = document.getElementById(`flag-reset-${id}`);
+  const autoBadge = document.getElementById(`flag-auto-badge-${id}`);
+  const editBtn = document.querySelector(`#flag-pop-${id}`)?.previousElementSibling;
+  if (resetBtn) resetBtn.style.display = '';
+  if (autoBadge) autoBadge.style.display = 'none';
+  if (editBtn) editBtn.classList.add('has-override');
+}
+
+async function resetFlagsOverride(id) {
+  const f = [...allFeatures, ...nlFeatures].find(x => x.id === id);
+  if (!f) return;
+
+  const prevOverride = f.flags_override;
+  f.flags_override = null;
+
+  try {
+    await apiFetch(`/api/features/${id}/flags`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ flags_override: null }),
+    });
+  } catch (err) {
+    f.flags_override = prevOverride;
+    showToast(`Flags not saved: ${err.message}`, 'error');
+    return;
+  }
+
+  const autoKeys = autoDetectFlagKeys(f);
+  updateFlagPills(id, autoKeys);
+
+  for (const c of COUNTRY_LIST) {
+    const chk = document.getElementById(`flag-chk-${id}-${safeCountryKey(c.key)}`);
+    if (chk) chk.checked = autoKeys.includes(c.key);
+  }
+
+  const resetBtn = document.getElementById(`flag-reset-${id}`);
+  const autoBadge = document.getElementById(`flag-auto-badge-${id}`);
+  const editBtn = document.querySelector(`#flag-pop-${id}`)?.previousElementSibling;
+  if (resetBtn) resetBtn.style.display = 'none';
+  if (autoBadge) autoBadge.style.display = '';
+  if (editBtn) editBtn.classList.remove('has-override');
 }
 
 function fmtMonthFromDate(isoDate) {
@@ -1004,38 +1274,57 @@ async function enrichSelected() {
 
 async function hideSelected() {
   const toHide = allFeatures.filter(x => x.is_selected && !x.is_hidden);
-  await Promise.all(toHide.map(f =>
-    fetch(`/api/features/${f.id}/hidden`, {
+  const results = await Promise.allSettled(toHide.map(f =>
+    apiFetch(`/api/features/${f.id}/hidden`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ is_hidden: 1 }),
     }).then(() => { f.is_hidden = 1; f.is_selected = 0; })
   ));
-  await fetch(`/api/releases/${currentRelease}/deselect-all`, { method: 'POST' });
+  const failed = results.filter(r => r.status === 'rejected').length;
+  try {
+    await apiFetch(`/api/releases/${currentRelease}/deselect-all`, { method: 'POST' });
+  } catch (err) {
+    showToast(`Some selections may not have cleared: ${err.message}`, 'error');
+  }
   renderFeatures();
   const selected = allFeatures.filter(x => x.is_selected).length;
   document.querySelector('.meta').textContent = `${allFeatures.length} features · ${selected} selected`;
   renderSelectionBar(selected, allFeatures.length);
   refreshSidebarBadge(currentRelease, selected);
-  showToast(`${toHide.length} item${toHide.length !== 1 ? 's' : ''} hidden`, 'success');
+  const hidden = toHide.length - failed;
+  if (failed > 0) {
+    showToast(`${hidden} hidden, ${failed} failed to save — try again`, 'error');
+  } else {
+    showToast(`${hidden} item${hidden !== 1 ? 's' : ''} hidden`, 'success');
+  }
 }
 
 async function hideFeature(id) {
   const f = allFeatures.find(x => x.id === id);
   if (!f) return;
-  await fetch(`/api/features/${id}/hidden`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ is_hidden: 1 }),
-  });
+  try {
+    await apiFetch(`/api/features/${id}/hidden`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_hidden: 1 }),
+    });
+  } catch (err) {
+    showToast(`Not hidden: ${err.message}`, 'error');
+    return;
+  }
   f.is_hidden = 1;
   if (f.is_selected) {
     f.is_selected = 0;
-    await fetch(`/api/features/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ is_selected: 0 }),
-    });
+    try {
+      await apiFetch(`/api/features/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_selected: 0 }),
+      });
+    } catch (err) {
+      showToast(`Deselect not saved: ${err.message}`, 'error');
+    }
   }
   renderFeatures();
   const selected = allFeatures.filter(x => x.is_selected).length;
@@ -1047,11 +1336,16 @@ async function hideFeature(id) {
 async function restoreFeature(id) {
   const f = allFeatures.find(x => x.id === id);
   if (!f) return;
-  await fetch(`/api/features/${id}/hidden`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ is_hidden: 0 }),
-  });
+  try {
+    await apiFetch(`/api/features/${id}/hidden`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_hidden: 0 }),
+    });
+  } catch (err) {
+    showToast(`Not restored: ${err.message}`, 'error');
+    return;
+  }
   f.is_hidden = 0;
   renderFeatures();
 }
@@ -1171,8 +1465,21 @@ function renderFeatures() {
 // ── Load releases ──────────────────────────────────────
 async function loadReleases() {
   const res = await fetch('/api/releases');
-  const releases = await res.json();
-  allReleases = releases;
+  allReleases = await res.json();
+  renderReleaseList();
+}
+
+function setReleasePlatformFilter(filter) {
+  releasePlatformFilter = filter;
+  ['all', 'web', 'mobile'].forEach(t => {
+    const btn = document.getElementById(`rel-filter-${t}`);
+    if (btn) btn.style.cssText = t === filter ? 'border-color:#5B5BD6;color:#5B5BD6;' : '';
+  });
+  renderReleaseList();
+}
+
+function renderReleaseList() {
+  const releases = allReleases;
   const el = document.getElementById('release-list');
 
   if (!releases.length) {
@@ -1180,18 +1487,93 @@ async function loadReleases() {
     return;
   }
 
-  el.innerHTML = releases.map(r => {
-    const month = fmtMonthFromDate(r.published_at);
-    return `
-      <div class="release-item" data-tag="${escHtml(r.tag)}" onclick="loadRelease('${escHtml(r.tag)}')">
-        <div>
-          <div class="release-tag">${escHtml(r.tag)} <span style="font-weight:400;color:#aaa;font-size:12px;">(${month})</span></div>
-          <div class="release-meta">${r.feature_count} feature${r.feature_count !== 1 ? 's' : ''}</div>
+  const filtered = releases.filter(r => matchesPlatformFilter({ platform: platformFromRepo(r.repo) }, releasePlatformFilter));
+  const visible = filtered.filter(r => !r.is_hidden);
+  const hidden = filtered.filter(r => r.is_hidden);
+
+  const visibleHtml = visible.map(r => releaseItemHtml(r)).join('')
+    || '<div style="padding:16px;font-size:13px;color:#aaa;">All releases hidden.</div>';
+
+  let hiddenHtml = '';
+  if (hidden.length > 0) {
+    hiddenHtml = `
+      <div class="product-group-header hidden-group-header" onclick="toggleHiddenReleases()">
+        <div class="group-header-left">
+          <span class="group-chevron${hiddenReleasesOpen ? ' open' : ''}" id="release-hidden-chev">&#9654;</span>
+          <span class="product-area-label" style="color:#999;">Hidden Releases</span>
+          <span class="group-count">${hidden.length}</span>
         </div>
-        <span class="release-badge ${(r.selected_count || 0) == 0 ? 'zero' : ''}">${r.selected_count || 0}</span>
+      </div>
+      <div id="release-hidden-body" style="display:${hiddenReleasesOpen ? 'block' : 'none'};">
+        ${hidden.map(r => releaseItemHtml(r, true)).join('')}
       </div>
     `;
-  }).join('');
+  }
+
+  el.innerHTML = visibleHtml + hiddenHtml;
+}
+
+function releaseItemHtml(r, isHidden) {
+  const month = fmtMonthFromDate(r.published_at);
+  const platform = platformFromRepo(r.repo);
+  const platformIcon = platform === 'web' ? '🌐' : '📱';
+  const action = isHidden
+    ? `<button class="restore-btn" onclick="event.stopPropagation(); restoreRelease('${escHtml(r.tag)}')">Restore</button>`
+    : `<button class="hide-btn" onclick="event.stopPropagation(); hideRelease('${escHtml(r.tag)}')">Hide</button>`;
+  return `
+    <div class="release-item${isHidden ? ' is-hidden' : ''}" data-tag="${escHtml(r.tag)}" onclick="loadRelease('${escHtml(r.tag)}')">
+      <div>
+        <div class="release-tag">${platformIcon} ${escHtml(rawTagFrom(r.tag))} <span style="font-weight:400;color:#aaa;font-size:12px;">(${month})</span></div>
+        <div class="release-meta">${r.feature_count} feature${r.feature_count !== 1 ? 's' : ''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span class="release-badge ${(r.selected_count || 0) == 0 ? 'zero' : ''}">${r.selected_count || 0}</span>
+        ${action}
+      </div>
+    </div>
+  `;
+}
+
+function toggleHiddenReleases() {
+  hiddenReleasesOpen = !hiddenReleasesOpen;
+  loadReleases();
+}
+
+async function hideRelease(tag) {
+  try {
+    await apiFetch(`/api/releases/${encodeURIComponent(tag)}/hidden`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_hidden: 1 }),
+    });
+  } catch (err) {
+    showToast(`Not hidden: ${err.message}`, 'error');
+    return;
+  }
+  const r = allReleases.find(x => x.tag === tag);
+  if (r) r.is_hidden = 1;
+  if (currentRelease === tag) {
+    currentRelease = null;
+    document.getElementById('main-panel').innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p>Select a release or newsletter from the left</p></div>';
+  }
+  loadReleases();
+  showToast(`${tag} hidden`, 'success');
+}
+
+async function restoreRelease(tag) {
+  try {
+    await apiFetch(`/api/releases/${encodeURIComponent(tag)}/hidden`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_hidden: 0 }),
+    });
+  } catch (err) {
+    showToast(`Not restored: ${err.message}`, 'error');
+    return;
+  }
+  const r = allReleases.find(x => x.tag === tag);
+  if (r) r.is_hidden = 0;
+  loadReleases();
 }
 
 // ── Load features for a release ───────────────────────
@@ -1217,10 +1599,11 @@ async function loadRelease(tag) {
   const monthLabel = releaseData ? fmtMonthFromDate(releaseData.published_at) : '';
   newsletterLabel = monthLabel;
 
+  const platformIcon = platformFromRepo(releaseData?.repo) === 'web' ? '🌐' : '📱';
   panel.innerHTML = `
     <div class="main-header">
       <div>
-        <h2>${escHtml(tag)}${monthLabel ? ` <span style="font-size:14px;font-weight:400;color:#888;">(${monthLabel})</span>` : ''}</h2>
+        <h2>${platformIcon} ${escHtml(rawTagFrom(tag))}${monthLabel ? ` <span style="font-size:14px;font-weight:400;color:#888;">(${monthLabel})</span>` : ''}</h2>
         <div class="meta">${features.length} features · ${selectedCount} selected</div>
       </div>
       <div class="actions">
@@ -1263,6 +1646,32 @@ function categorySelectHtml(f) {
     `<option value="${escHtml(c)}" ${c === f.product_area ? 'selected' : ''}>${escHtml(c)}</option>`
   ).join('');
   return `<select class="category-select" onclick="event.stopPropagation()" onchange="event.stopPropagation(); updateCategory(${f.id}, this.value)">${opts}</select>`;
+}
+
+async function updatePlatform(id, newPlatform) {
+  try {
+    await apiFetch(`/api/features/${id}/platform`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ platform: newPlatform }),
+    });
+  } catch (err) {
+    showToast(`Platform not saved: ${err.message}`, 'error');
+    return;
+  }
+  [allFeatures, nlFeatures].forEach(arr => {
+    const f = arr.find(x => x.id === id);
+    if (f) f.platform = newPlatform;
+  });
+  rerenderCurrentPanel();
+  showToast('Platform updated', 'success');
+}
+
+function platformSelectHtml(f) {
+  const opts = Object.entries(PLATFORM_BADGE).map(([value, label]) =>
+    `<option value="${value}" ${value === platformOf(f) ? 'selected' : ''}>${label}</option>`
+  ).join('');
+  return `<select class="category-select" onclick="event.stopPropagation()" onchange="event.stopPropagation(); updatePlatform(${f.id}, this.value)">${opts}</select>`;
 }
 
 function flagPillsHtml(f) {
@@ -1388,11 +1797,16 @@ function showDocsInput(id, currentUrl) {
 async function saveDocsUrl(id) {
   const input = document.getElementById(`docs-input-${id}`);
   const url = input ? input.value.trim() : '';
-  await fetch(`/api/features/${id}/docs-url`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ docs_url: url || null }),
-  });
+  try {
+    await apiFetch(`/api/features/${id}/docs-url`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ docs_url: url || null }),
+    });
+  } catch (err) {
+    showToast(`Docs link not saved: ${err.message}`, 'error');
+    return;
+  }
   [allFeatures, nlFeatures].forEach(arr => {
     const f = arr.find(x => x.id === id);
     if (f) f.docs_url = url || null;
@@ -1402,11 +1816,16 @@ async function saveDocsUrl(id) {
 }
 
 async function clearDocsUrl(id) {
-  await fetch(`/api/features/${id}/docs-url`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ docs_url: 'none' }),
-  });
+  try {
+    await apiFetch(`/api/features/${id}/docs-url`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ docs_url: 'none' }),
+    });
+  } catch (err) {
+    showToast(`Docs link not cleared: ${err.message}`, 'error');
+    return;
+  }
   [allFeatures, nlFeatures].forEach(arr => {
     const f = arr.find(x => x.id === id);
     if (f) f.docs_url = 'none';
@@ -1431,11 +1850,12 @@ function featureCard(f) {
       <div class="feature-body">
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:5px;">
           <span class="feature-type-badge ${type}">${type === 'fix' ? 'Fix' : 'Feature'}</span>
-          <span class="release-tag-pill">${escHtml(f.release_tag)}</span>
+          <span class="release-tag-pill">${escHtml(rawTagFrom(f.release_tag))}</span>
           ${categorySelectHtml(f)}
-          ${flagPillsHtml(f)}
+          ${platformSelectHtml(f)}
+          ${flagEditorHtml(f)}
         </div>
-        <div class="feature-title">${escHtml(f.title)}</div>
+        <div class="feature-title" title="Click to edit" onclick="event.stopPropagation();editTitle(${f.id},this)">${escHtml(f.title)}</div>
         <div class="feature-desc" title="Click to edit" onclick="event.stopPropagation();editDescription(${f.id},this)">${escHtml(f.description)}</div>
         ${docsRowHtml(f)}
       </div>
@@ -1462,7 +1882,7 @@ function hiddenCard(f) {
     <div class="feature-card is-hidden" id="card-${f.id}">
       <div class="feature-body">
         <div><span class="feature-type-badge ${type}">${type === 'fix' ? 'Fix' : 'Feature'}</span></div>
-        <div class="feature-title">${escHtml(f.title)}</div>
+        <div class="feature-title" title="Click to edit" onclick="event.stopPropagation();editTitle(${f.id},this)">${escHtml(f.title)}</div>
         <div class="feature-desc" title="Click to edit" onclick="event.stopPropagation();editDescription(${f.id},this)">${escHtml(f.description)}</div>
       </div>
       <div class="feature-priority">
@@ -1498,11 +1918,16 @@ async function toggleFeature(id) {
   const f = allFeatures.find(x => x.id === id);
   if (!f) return;
   const newVal = f.is_selected ? 0 : 1;
-  await fetch(`/api/features/${id}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ is_selected: newVal }),
-  });
+  try {
+    await apiFetch(`/api/features/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_selected: newVal }),
+    });
+  } catch (err) {
+    showToast(`Selection not saved: ${err.message}`, 'error');
+    return;
+  }
   f.is_selected = newVal;
 
   const selected = allFeatures.filter(x => x.is_selected).length;
@@ -1535,11 +1960,12 @@ function selectedFeatureCard(f, i) {
       <div class="feature-body">
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:5px;">
           <span class="feature-type-badge ${type}">${type === 'fix' ? 'Fix' : 'Feature'}</span>
-          <span class="release-tag-pill">${escHtml(f.release_tag || '')}</span>
+          <span class="release-tag-pill">${escHtml(rawTagFrom(f.release_tag || ''))}</span>
           ${categorySelectHtml(f)}
-          ${flagPillsHtml(f)}
+          ${platformSelectHtml(f)}
+          ${flagEditorHtml(f)}
         </div>
-        <div class="feature-title">${escHtml(f.title)}</div>
+        <div class="feature-title" title="Click to edit" onclick="event.stopPropagation();editTitle(${f.id},this)">${escHtml(f.title)}</div>
         <div class="feature-desc" title="Click to edit" onclick="event.stopPropagation();editDescription(${f.id},this)">${escHtml(f.description)}</div>
         ${docsRowHtml(f)}
       </div>
@@ -1592,14 +2018,17 @@ function selDragDrop(event, targetId) {
   const [moved] = items.splice(srcIdx, 1);
   items.splice(tgtIdx, 0, moved);
 
-  items.forEach((f, i) => {
+  Promise.allSettled(items.map((f, i) => {
     const af = allFeatures.find(x => x.id === f.id);
     if (af) af.priority = i * 10;
-    fetch(`/api/features/${f.id}/priority`, {
+    return apiFetch(`/api/features/${f.id}/priority`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ priority: i * 10 }),
     });
+  })).then(results => {
+    const failed = results.filter(r => r.status === 'rejected').length;
+    if (failed > 0) showToast(`Order not fully saved (${failed} failed) — try again`, 'error');
   });
 
   selDragSrcId = null;
@@ -1622,12 +2051,20 @@ function generateFromSelectedOrder() {
 }
 
 async function selectAll() {
-  await fetch(`/api/releases/${currentRelease}/select-all`, { method: 'POST' });
+  try {
+    await apiFetch(`/api/releases/${currentRelease}/select-all`, { method: 'POST' });
+  } catch (err) {
+    showToast(`Not saved: ${err.message}`, 'error');
+  }
   loadRelease(currentRelease);
 }
 
 async function deselectAll() {
-  await fetch(`/api/releases/${currentRelease}/deselect-all`, { method: 'POST' });
+  try {
+    await apiFetch(`/api/releases/${currentRelease}/deselect-all`, { method: 'POST' });
+  } catch (err) {
+    showToast(`Not saved: ${err.message}`, 'error');
+  }
   loadRelease(currentRelease);
 }
 
@@ -1685,14 +2122,59 @@ function handleImageFile(event, featureId) {
   if (file) uploadImage(featureId, file);
 }
 
+// Screenshots dropped in are often full-res retina captures (5000px+, several MB) —
+// the email only ever displays them at a ~550px column width, so anything beyond
+// ~2x that is wasted bytes that slow down loading with no visible quality gain.
+const MAX_IMAGE_WIDTH = 1200;
+
+function resizeImageDataUrl(dataUrl, maxWidth) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      if (img.width <= maxWidth) { resolve(dataUrl); return; }
+
+      // Downscale in halving steps rather than one big jump. Canvas's smoothing
+      // filter is bilinear-ish, not a true area/Lanczos filter — collapsing a
+      // large ratio (we've seen 5x) in a single pass visibly softens fine
+      // text/UI edges. Keeping each step close to 2x avoids that.
+      let src = img;
+      let w = img.width;
+      let h = img.height;
+      while (w / 2 > maxWidth) {
+        const step = document.createElement('canvas');
+        step.width = Math.round(w / 2);
+        step.height = Math.round(h / 2);
+        const stepCtx = step.getContext('2d');
+        stepCtx.imageSmoothingEnabled = true;
+        stepCtx.imageSmoothingQuality = 'high';
+        stepCtx.drawImage(src, 0, 0, step.width, step.height);
+        src = step;
+        w = step.width;
+        h = step.height;
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = maxWidth;
+      canvas.height = Math.round(h * (maxWidth / w));
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(src, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = reject;
+    img.src = dataUrl;
+  });
+}
+
 function uploadImage(featureId, file) {
   const reader = new FileReader();
   reader.onload = async (e) => {
-    const dataUrl = e.target.result;
-    const [header, data] = dataUrl.split(',');
-    const mime = header.match(/:(.*?);/)[1];
     const zone = document.getElementById(`imgdrop-${featureId}`);
     zone.innerHTML = `<span style="font-size:10px;color:#aaa;">Uploading…</span>`;
+    const dataUrl = await resizeImageDataUrl(e.target.result, MAX_IMAGE_WIDTH);
+    const [header, data] = dataUrl.split(',');
+    const mime = header.match(/:(.*?);/)[1];
     const res = await fetch(`/api/features/${featureId}/image`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1714,7 +2196,12 @@ function uploadImage(featureId, file) {
 }
 
 async function removeImage(featureId) {
-  await fetch(`/api/features/${featureId}/image`, { method: 'DELETE' });
+  try {
+    await apiFetch(`/api/features/${featureId}/image`, { method: 'DELETE' });
+  } catch (err) {
+    showToast(`Image not removed: ${err.message}`, 'error');
+    return;
+  }
   const zone = document.getElementById(`imgdrop-${featureId}`);
   zone.classList.remove('has-image');
   zone.innerHTML = `<span style="font-size:18px;line-height:1;">+</span><span>image</span><input type="file" id="imgfile-${featureId}" accept="image/*" style="display:none" onchange="handleImageFile(event,${featureId})" />`;
@@ -1745,6 +2232,18 @@ function showToast(msg, type = '') {
   toastTimer = setTimeout(() => el.className = '', 3000);
 }
 
+// Throws (with the server's error message where available) on a non-2xx response,
+// so a failed save can never be mistaken for a successful one.
+async function apiFetch(url, opts) {
+  const res = await fetch(url, opts);
+  if (!res.ok) {
+    let msg = `Save failed (${res.status})`;
+    try { const data = await res.json(); if (data?.error) msg = data.error; } catch { /* non-JSON error body */ }
+    throw new Error(msg);
+  }
+  return res;
+}
+
 
 // ── Inline description editing ────────────────────────
 function editDescription(id, el) {
@@ -1772,11 +2271,17 @@ function editDescription(id, el) {
     done = true;
     const newDesc = ta.value.trim();
     if (save && newDesc && newDesc !== current) {
-      await fetch(`/api/features/${id}/description`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description: newDesc }),
-      });
+      try {
+        await apiFetch(`/api/features/${id}/description`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ description: newDesc }),
+        });
+      } catch (err) {
+        showToast(`Description not saved: ${err.message}`, 'error');
+        ta.replaceWith(makeDescDiv(current));
+        return;
+      }
       [allFeatures, nlFeatures].forEach(arr => {
         const f = arr.find(x => x.id === id);
         if (f) f.description = newDesc;
@@ -1792,6 +2297,64 @@ function editDescription(id, el) {
   ta.addEventListener('keydown', e => {
     if (e.key === 'Escape') { e.preventDefault(); finish(false); }
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); finish(true); }
+  });
+}
+
+// ── Inline title editing ──────────────────────────────
+function editTitle(id, el) {
+  const current = el.textContent;
+  let done = false;
+
+  const inp = document.createElement('input');
+  inp.type = 'text';
+  inp.value = current;
+  inp.className = 'desc-textarea';
+  inp.style.cssText = 'min-height:0;padding:3px 7px;font-size:14px;font-weight:600;resize:none;';
+  inp.onclick = e => e.stopPropagation();
+  el.replaceWith(inp);
+  inp.focus();
+  inp.select();
+
+  function makeTitleDiv(text) {
+    const div = document.createElement('div');
+    div.className = 'feature-title';
+    div.title = 'Click to edit';
+    div.textContent = text;
+    div.onclick = e => { e.stopPropagation(); editTitle(id, div); };
+    return div;
+  }
+
+  async function finish(save) {
+    if (done) return;
+    done = true;
+    const newTitle = inp.value.trim();
+    if (save && newTitle && newTitle !== current) {
+      try {
+        await apiFetch(`/api/features/${id}/title`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: newTitle }),
+        });
+      } catch (err) {
+        showToast(`Title not saved: ${err.message}`, 'error');
+        inp.replaceWith(makeTitleDiv(current));
+        return;
+      }
+      [allFeatures, nlFeatures].forEach(arr => {
+        const f = arr.find(x => x.id === id);
+        if (f) f.title = newTitle;
+      });
+      inp.replaceWith(makeTitleDiv(newTitle));
+      showToast('Title saved', 'success');
+    } else {
+      inp.replaceWith(makeTitleDiv(current));
+    }
+  }
+
+  inp.addEventListener('blur', () => finish(true));
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+    if (e.key === 'Enter') { e.preventDefault(); finish(true); }
   });
 }
 
@@ -1856,25 +2419,49 @@ async function loadNewsletter(month) {
   const res = await fetch(`/api/newsletters/${encodeURIComponent(month)}/features`);
   const { features } = await res.json();
   nlFeatures = features;
+  nlPlatformFilter = 'all';
 
   renderNewsletterPanel();
+}
+
+function setNlPlatformFilter(filter) {
+  nlPlatformFilter = filter;
+  renderNewsletterPanel();
+}
+
+function nlPlatformFilterChipsHtml() {
+  const webCount = nlFeatures.filter(f => matchesPlatformFilter(f, 'web')).length;
+  const mobileCount = nlFeatures.filter(f => matchesPlatformFilter(f, 'mobile')).length;
+  const chip = (value, label) => `<button class="btn btn-ghost" onclick="setNlPlatformFilter('${value}')" style="${nlPlatformFilter === value ? 'border-color:#5B5BD6;color:#5B5BD6;' : ''}">${label}</button>`;
+  return `
+    <div style="display:flex;gap:6px;">
+      ${chip('all', `All (${nlFeatures.length})`)}
+      ${chip('web', `🌐 Web (${webCount})`)}
+      ${chip('mobile', `📱 Mobile (${mobileCount})`)}
+    </div>
+  `;
 }
 
 function renderNewsletterPanel() {
   const panel = document.getElementById('main-panel');
   const label = fmtMonthLabel(currentNewsletter);
 
-  const cardsHtml = nlFeatures.length
-    ? `<div class="nl-list" id="nl-feature-list">${nlFeatures.map((f, i) => nlFeatureCard(f, i)).join('')}</div>`
-    : `<div class="empty"><div class="empty-icon">📭</div><p>No features yet — assign some from a Release.</p></div>`;
+  const visibleNlFeatures = nlFeatures.filter(f => matchesPlatformFilter(f, nlPlatformFilter));
+  const formHtml = addFeatureFormOpen ? addFeatureFormHtml() : '';
+  const listHtml = visibleNlFeatures.map((f, i) => nlFeatureCard(f, i)).join('');
+  const cardsHtml = (formHtml || listHtml)
+    ? `<div class="nl-list" id="nl-feature-list">${formHtml}${listHtml}</div>`
+    : `<div class="empty"><div class="empty-icon">📭</div><p>${nlFeatures.length === 0 ? 'No features yet — assign some from a Release, or add one manually.' : 'No features in this tab.'}</p></div>`;
 
   panel.innerHTML = `
     <div class="main-header">
       <div>
         <h2>${escHtml(label)}</h2>
-        <div class="meta">${nlFeatures.length} feature${nlFeatures.length !== 1 ? 's' : ''}</div>
+        <div class="meta">${nlFeatures.length} feature${nlFeatures.length !== 1 ? 's' : ''} total — one combined email</div>
       </div>
       <div class="actions">
+        ${nlPlatformFilterChipsHtml()}
+        <button class="btn btn-ghost" onclick="toggleAddFeatureForm()">${addFeatureFormOpen ? 'Cancel' : '+ Add feature'}</button>
         <span style="font-size:12px;color:#aaa;">Drag to reorder</span>
       </div>
     </div>
@@ -1883,6 +2470,73 @@ function renderNewsletterPanel() {
   `;
 
   renderNewsletterBar();
+  if (addFeatureFormOpen) document.getElementById('add-feat-title')?.focus();
+}
+
+// ── Add feature manually ──────────────────────────────
+function addFeatureFormHtml() {
+  const catOptions = CANONICAL_CATEGORIES.map(c => `<option value="${escHtml(c)}">${escHtml(c)}</option>`).join('');
+  const defaultPlatform = nlPlatformFilter === 'android' || nlPlatformFilter === 'ios' ? nlPlatformFilter : 'web';
+  const platformOptions = Object.entries(PLATFORM_BADGE).map(([value, label]) =>
+    `<option value="${value}" ${value === defaultPlatform ? 'selected' : ''}>${label}</option>`
+  ).join('');
+  return `
+    <div class="feature-card" id="add-feature-card" style="border:1px dashed #5B5BD6;background:#fafaff;">
+      <div class="feature-body">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+          <select class="category-select" id="add-feat-category">${catOptions}</select>
+          <select class="category-select" id="add-feat-platform">${platformOptions}</select>
+        </div>
+        <input type="text" id="add-feat-title" placeholder="Feature title" maxlength="120"
+          style="width:100%;box-sizing:border-box;font-size:14px;font-weight:600;padding:6px 8px;border:1px solid #d5d5d5;border-radius:6px;margin-bottom:6px;outline:none;font-family:inherit;" />
+        <textarea id="add-feat-desc" placeholder="Description (merchant-facing, &quot;We&quot; voice)" class="desc-textarea" style="width:100%;box-sizing:border-box;display:block;"></textarea>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button class="btn btn-success" onclick="submitAddFeature()">Add feature</button>
+          <button class="btn btn-ghost" onclick="cancelAddFeatureForm()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function toggleAddFeatureForm() {
+  addFeatureFormOpen = !addFeatureFormOpen;
+  renderNewsletterPanel();
+}
+
+function cancelAddFeatureForm() {
+  addFeatureFormOpen = false;
+  renderNewsletterPanel();
+}
+
+async function submitAddFeature() {
+  const product_area = document.getElementById('add-feat-category')?.value;
+  const platform = document.getElementById('add-feat-platform')?.value || 'web';
+  const title = document.getElementById('add-feat-title')?.value.trim();
+  const description = document.getElementById('add-feat-desc')?.value.trim();
+  if (!title || !description) {
+    showToast('Title and description are required', 'error');
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/newsletters/${encodeURIComponent(currentNewsletter)}/features`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product_area, title, description, platform }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to add feature');
+
+    nlFeatures.push(data.feature);
+    allFeatures.push(data.feature);
+    addFeatureFormOpen = false;
+    renderNewsletterPanel();
+    await loadNewsletters();
+    showToast('Feature added', 'success');
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
 }
 
 function renderNewsletterBar() {
@@ -1897,6 +2551,10 @@ function renderNewsletterBar() {
         <span class="newsletter-label-prefix">Label:</span>
         <input class="newsletter-label-input" type="text" value="${escHtml(fmtMonthLabel(currentNewsletter))}" placeholder="e.g. June 2026" id="nl-label-input" title="Label shown in the email" />
       </div>
+      <div class="newsletter-label-wrap">
+        <span class="newsletter-label-prefix">Preview text:</span>
+        <input class="newsletter-label-input" type="text" id="nl-preview-input" placeholder="Auto-generated from features" maxlength="90" style="width:260px;" title="Overrides the auto-generated preview text shown in inbox (max 90 chars)" />
+      </div>
       <button class="btn btn-success" ${count === 0 ? 'disabled' : ''} onclick="generateNewsletterZip()">⚡ Generate ZIP</button>
     </div>
   `;
@@ -1910,12 +2568,13 @@ async function generateNewsletterZip() {
 
   const orderedIds = nlFeatures.map(f => f.id);
   const label = document.getElementById('nl-label-input')?.value || fmtMonthLabel(currentNewsletter);
+  const previewText = document.getElementById('nl-preview-input')?.value?.trim() || '';
 
   try {
     const res = await fetch(`/api/newsletters/${encodeURIComponent(currentNewsletter)}/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orderedIds, label }),
+      body: JSON.stringify({ orderedIds, label, ...(previewText ? { previewText } : {}) }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Generation failed');
@@ -1954,11 +2613,12 @@ function nlFeatureCard(f, i) {
       <div class="feature-body">
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:5px;">
           <span class="feature-type-badge ${type}">${type === 'fix' ? 'Fix' : 'Feature'}</span>
-          <span class="release-tag-pill">${escHtml(f.release_tag)}</span>
+          <span class="release-tag-pill">${escHtml(rawTagFrom(f.release_tag))}</span>
           ${categorySelectHtml(f)}
-          ${flagPillsHtml(f)}
+          ${platformSelectHtml(f)}
+          ${flagEditorHtml(f)}
         </div>
-        <div class="feature-title">${escHtml(f.title)}</div>
+        <div class="feature-title" title="Click to edit" onclick="event.stopPropagation();editTitle(${f.id},this)">${escHtml(f.title)}</div>
         <div class="feature-desc" title="Click to edit" onclick="event.stopPropagation();editDescription(${f.id},this)">${escHtml(f.description)}</div>
         ${docsRowHtml(f)}
       </div>
@@ -2006,13 +2666,16 @@ function nlDragDrop(event, targetId) {
   const [moved] = nlFeatures.splice(srcIdx, 1);
   nlFeatures.splice(tgtIdx, 0, moved);
 
-  nlFeatures.forEach((f, i) => {
+  Promise.allSettled(nlFeatures.map((f, i) => {
     f.newsletter_priority = i * 10;
-    fetch(`/api/features/${f.id}/newsletter-priority`, {
+    return apiFetch(`/api/features/${f.id}/newsletter-priority`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ priority: i * 10 }),
     });
+  })).then(results => {
+    const failed = results.filter(r => r.status === 'rejected').length;
+    if (failed > 0) showToast(`Order not fully saved (${failed} failed) — try again`, 'error');
   });
 
   nlDragSrcId = null;
@@ -2027,11 +2690,16 @@ function nlDragEnd() {
 }
 
 async function removeFromNewsletter(id) {
-  await fetch(`/api/features/${id}/newsletter`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ newsletter_month: null }),
-  });
+  try {
+    await apiFetch(`/api/features/${id}/newsletter`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ newsletter_month: null }),
+    });
+  } catch (err) {
+    showToast(`Not removed: ${err.message}`, 'error');
+    return;
+  }
   nlFeatures = nlFeatures.filter(x => x.id !== id);
   const af = allFeatures.find(x => x.id === id);
   if (af) af.newsletter_month = null;
@@ -2103,11 +2771,16 @@ function confirmNewMonth(featureId) {
 }
 
 async function assignToNewsletter(featureId, month) {
-  await fetch(`/api/features/${featureId}/newsletter`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ newsletter_month: month }),
-  });
+  try {
+    await apiFetch(`/api/features/${featureId}/newsletter`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ newsletter_month: month }),
+    });
+  } catch (err) {
+    showToast(`Not saved: ${err.message}`, 'error');
+    return;
+  }
   [allFeatures, nlFeatures].forEach(arr => {
     const f = arr.find(x => x.id === featureId);
     if (f) f.newsletter_month = month;
@@ -2119,7 +2792,7 @@ async function assignToNewsletter(featureId, month) {
 }
 
 document.addEventListener('click', () => {
-  document.querySelectorAll('.assign-dropdown, .move-dropdown').forEach(d => d.style.display = 'none');
+  document.querySelectorAll('.assign-dropdown, .move-dropdown, .flag-popover').forEach(d => d.style.display = 'none');
 });
 
 // ── Init ───────────────────────────────────────────────

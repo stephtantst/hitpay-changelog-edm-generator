@@ -20,6 +20,7 @@ interface SelectedFeature {
   title: string;
   description: string;
   docs_url?: string | null;
+  flags_override?: string | null;
 }
 
 const SCREENSHOTS_DIR = path.join(__dirname, '../screenshots');
@@ -99,6 +100,52 @@ function detectFlags(title: string, description: string): string {
   return flags.join(' ');
 }
 
+function resolveFlags(f: SelectedFeature): string {
+  if (f.flags_override !== null && f.flags_override !== undefined) {
+    if (!f.flags_override) return '';
+    return f.flags_override
+      .split(',')
+      .map(k => COUNTRY_FLAGS[k as keyof typeof COUNTRY_FLAGS] || '')
+      .filter(Boolean)
+      .join(' ');
+  }
+  return detectFlags(f.title, f.description);
+}
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+}
+
+const MONTH_ABBR: Record<string, string> = {
+  january: 'jan', february: 'feb', march: 'mar', april: 'apr',
+  may: 'may', june: 'jun', july: 'jul', august: 'aug',
+  september: 'sep', october: 'oct', november: 'nov', december: 'dec',
+};
+
+// e.g. "August 2026" -> "aug_2026_changelog"; falls back to a slug of the label
+function buildUtmCampaign(label: string): string {
+  const match = label.match(/^([A-Za-z]+)\s+(\d{4})$/);
+  const monthAbbr = match && MONTH_ABBR[match[1].toLowerCase()];
+  if (match && monthAbbr) return `${monthAbbr}_${match[2]}_changelog`;
+  return `${slugify(label)}_changelog`;
+}
+
+function addUtmParams(url: string, campaign: string, content: string): string {
+  try {
+    const u = new URL(url);
+    u.searchParams.set('utm_source', 'email');
+    u.searchParams.set('utm_medium', 'email');
+    u.searchParams.set('utm_campaign', campaign);
+    u.searchParams.set('utm_content', content);
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
 function findFeatureImage(tag: string, featureId: number): string | null {
   const dir = path.join(SCREENSHOTS_DIR, tag);
   for (const ext of ['png', 'jpg', 'jpeg', 'webp']) {
@@ -112,14 +159,16 @@ function findFeatureImage(tag: string, featureId: number): string | null {
 export async function generateFromSelections(
   tag: string,
   selected: SelectedFeature[],
-  options?: { label?: string }
+  options?: { label?: string; previewText?: string }
 ): Promise<string> {
   const label = options?.label ?? tag;
+  const utmCampaign = buildUtmCampaign(label);
 
   // Use all selected features
   const features = selected.map(f => {
-    const flags = detectFlags(f.title, f.description);
-    const docsUrl = f.docs_url || matchDocsUrl(f.title, f.description);
+    const flags = resolveFlags(f);
+    const rawDocsUrl = f.docs_url === 'none' ? null : (f.docs_url || matchDocsUrl(f.title, f.description));
+    const docsUrl = rawDocsUrl ? addUtmParams(rawDocsUrl, utmCampaign, slugify(f.title)) : null;
     return {
       tag: f.product_area,
       title: f.title,
@@ -151,7 +200,7 @@ export async function generateFromSelections(
 
   const mjml = generateMjmlForZip({
     subject,
-    preview_text: buildPreviewText(selected),
+    preview_text: options?.previewText?.trim() || buildPreviewText(selected),
     intro: `Here's what we shipped in ${label}.`,
     features,
     tag,

@@ -1,7 +1,6 @@
-import Anthropic from '@anthropic-ai/sdk';
 import db, { Feature } from './db';
-
-const client = new Anthropic();
+import { callOpenRouter, extractJsonArray } from './openrouter';
+import { REPOS, RepoKey } from './repos';
 const GITHUB_HEADERS = () => ({
   Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
   Accept: 'application/vnd.github+json',
@@ -37,8 +36,9 @@ export function matchToPR(featureTitle: string, prs: ParsedPR[]): ParsedPR | nul
   return best;
 }
 
-export async function fetchPRBody(prNumber: number): Promise<string> {
-  const res = await fetch(`https://api.github.com/repos/hit-pay/hitpay-core/pulls/${prNumber}`, {
+export async function fetchPRBody(prNumber: number, repoKey: RepoKey = 'web'): Promise<string> {
+  const { owner, repo } = REPOS[repoKey];
+  const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls/${prNumber}`, {
     headers: GITHUB_HEADERS(),
   });
   if (!res.ok) return '';
@@ -46,21 +46,22 @@ export async function fetchPRBody(prNumber: number): Promise<string> {
   return (data.body || '').replace(/<!--[\s\S]*?-->/g, '').replace(/^#{1,3}\s+Summary by.*$/gim, '').trim().slice(0, 1500);
 }
 
-export async function fetchReleasePRs(tag: string): Promise<ParsedPR[]> {
-  const res = await fetch(`https://api.github.com/repos/hit-pay/hitpay-core/releases/tags/${tag}`, {
+export async function fetchReleasePRs(rawTag: string, repoKey: RepoKey = 'web'): Promise<ParsedPR[]> {
+  const { owner, repo } = REPOS[repoKey];
+  const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/releases/tags/${rawTag}`, {
     headers: GITHUB_HEADERS(),
   });
   const release = await res.json() as { body: string };
   return parsePRsFromBody(release.body);
 }
 
-export async function enrichFeatures(features: Feature[], prs: ParsedPR[]): Promise<Array<{ id: number; description: string }>> {
+export async function enrichFeatures(features: Feature[], prs: ParsedPR[], repoKey: RepoKey = 'web'): Promise<Array<{ id: number; description: string }>> {
   // Match each feature to a PR and fetch its body
   const prDetails = new Map<number, { pr: ParsedPR; body: string }>();
   for (const f of features) {
     const pr = matchToPR(f.title, prs);
     if (pr) {
-      const body = await fetchPRBody(pr.number);
+      const body = await fetchPRBody(pr.number, repoKey);
       prDetails.set(f.id, { pr, body });
     }
   }
@@ -70,12 +71,10 @@ export async function enrichFeatures(features: Feature[], prs: ParsedPR[]): Prom
     return { id: f.id, title: f.title, current_description: f.description, pr_title: match?.pr.title ?? null, pr_body: match?.body ?? null };
   });
 
-  const msg = await client.messages.create({
-    model: 'claude-haiku-4-5-20251001',
-    max_tokens: 4096,
-    system: [{
-      type: 'text',
-      text: `You are writing merchant-facing feature descriptions for HitPay, a payment platform for SME merchants in Southeast Asia.
+  const text = await callOpenRouter({
+    model: 'anthropic/claude-haiku-4.5',
+    maxTokens: 4096,
+    system: `You are writing merchant-facing feature descriptions for HitPay, a payment platform for SME merchants in Southeast Asia.
 Rules:
 - Use "We" voice (We added, We improved, We fixed, We now support)
 - 1 sentence if straightforward; up to 2 sentences if the feature warrants more detail
@@ -83,21 +82,14 @@ Rules:
 - Do not mention internal ticket numbers, PR numbers, or developer terms
 - If the PR body provides useful context, use it to be more specific
 - If no useful PR info, improve the existing description for clarity`,
-      cache_control: { type: 'ephemeral' },
-    }],
-    messages: [{
-      role: 'user',
-      content: `For each feature below, write an improved description. Return a JSON array only (no markdown).
+    user: `For each feature below, write an improved description. Return a JSON array only (no markdown).
 
 Features:
 ${JSON.stringify(items, null, 2)}
 
 Output: [{"id": 123, "description": "improved description"}]`,
-    }],
   });
-
-  const text = (msg.content[0] as { type: string; text: string }).text;
-  const cleaned = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
+  const cleaned = extractJsonArray(text);
   try {
     return JSON.parse(cleaned);
   } catch {

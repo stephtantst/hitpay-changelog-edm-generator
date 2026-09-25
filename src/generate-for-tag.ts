@@ -15,6 +15,7 @@ import { generateMockup } from './mockup-generator';
 import { generateMjmlForZip, compileMjmlToHtml } from './email-generator';
 import { generateZip, inlineImagesInHtml } from './zip-generator';
 import { exec } from 'child_process';
+import { REPOS, RepoKey, isRepoKey } from './repos';
 
 const SCREENSHOTS_DIR = path.join(__dirname, '../screenshots');
 
@@ -25,11 +26,12 @@ interface GithubRelease {
   published_at: string;
 }
 
-async function fetchRelease(tag: string): Promise<GithubRelease> {
+async function fetchRelease(tag: string, repoKey: RepoKey): Promise<GithubRelease> {
   const token = process.env.GITHUB_TOKEN;
   if (!token) throw new Error('GITHUB_TOKEN is required');
 
-  const res = await fetch(`https://api.github.com/repos/hit-pay/hitpay-core/releases/tags/${tag}`, {
+  const { owner, repo } = REPOS[repoKey];
+  const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/releases/tags/${tag}`, {
     headers: {
       Authorization: `Bearer ${token}`,
       Accept: 'application/vnd.github+json',
@@ -54,10 +56,10 @@ function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
-async function generateForTag(tag: string): Promise<void> {
-  console.log(`\n── Generating ZIP for ${tag} ──`);
+async function generateForTag(tag: string, repoKey: RepoKey): Promise<void> {
+  console.log(`\n── Generating ZIP for ${tag} (${REPOS[repoKey].repo}) ──`);
 
-  const release = await fetchRelease(tag);
+  const release = await fetchRelease(tag, repoKey);
   const { items } = parseReleaseNotes(release.body);
   console.log(`  ${items.length} PR items parsed`);
 
@@ -104,14 +106,20 @@ async function generateForTag(tag: string): Promise<void> {
 }
 
 async function main() {
-  const tags = process.argv.slice(2);
+  const args = process.argv.slice(2);
+  const repoArg = args.find(a => a.startsWith('--repo='))?.slice('--repo='.length) ?? 'web';
+  if (!isRepoKey(repoArg)) {
+    console.error(`Unknown --repo=${repoArg}. Valid options: ${Object.keys(REPOS).join(', ')}`);
+    process.exit(1);
+  }
+  const tags = args.filter(a => !a.startsWith('--repo='));
   if (tags.length === 0) {
-    console.error('Usage: ts-node src/generate-for-tag.ts v78.0 v79.0');
+    console.error('Usage: ts-node src/generate-for-tag.ts [--repo=web|android|ios] v78.0 v79.0');
     process.exit(1);
   }
 
   for (const tag of tags) {
-    await generateForTag(tag);
+    await generateForTag(tag, repoArg);
   }
 
   console.log('\nDone. ZIPs are in the output/ folder.');
