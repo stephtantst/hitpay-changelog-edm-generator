@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import db, { queries, Feature } from './db';
+import { callOpenRouter } from './openrouter';
 
 const SCREENSHOTS_DIR = path.join(__dirname, '../screenshots');
 
@@ -115,13 +116,7 @@ app.post('/api/months/:monthKey/generate', async (req, res) => {
     const label = fmtMonthLabel(monthKey);
     const zipPath = await generateFromSelections(
       monthKey,
-      selected.map(f => ({
-        id: f.id,
-        release_tag: f.release_tag,
-        product_area: f.product_area,
-        title: f.title,
-        description: f.description,
-      })),
+      selected,
       { label }
     );
     const filename = path.basename(zipPath);
@@ -219,6 +214,37 @@ app.patch('/api/features/:id/docs-url', (req, res) => {
     Number(req.params.id)
   );
   res.json({ ok: true });
+});
+
+// PATCH /api/features/:id/cta  { cta_text: string | null }
+// null/'' = default "Learn more →" text link; anything else = button with that label
+app.patch('/api/features/:id/cta', (req, res) => {
+  const { cta_text } = req.body as { cta_text: string | null };
+  db.prepare('UPDATE features SET cta_text = ? WHERE id = ?').run(
+    cta_text?.trim() || null,
+    Number(req.params.id)
+  );
+  res.json({ ok: true });
+});
+
+// POST /api/features/:id/suggest-cta  → { cta_text: string }  (not saved; UI pre-fills the input)
+app.post('/api/features/:id/suggest-cta', async (req, res) => {
+  const f = queries.getFeatureById.get(Number(req.params.id)) as Feature | undefined;
+  if (!f) { res.status(404).json({ error: 'Feature not found' }); return; }
+  try {
+    const text = await callOpenRouter({
+      model: 'anthropic/claude-sonnet-4.5',
+      maxTokens: 50,
+      system: `You write CTA button labels for HitPay's merchant changelog email.
+Labels are 2-4 words, action-oriented, start with a verb, sentence case, and specific to the feature
+(e.g. "Create your invite", "Explore Health", "Set up admin fees", "Try PayNow QR").
+Never use "Learn more", "Click here", or trailing punctuation. Reply with the label only.`,
+      user: `Feature: ${f.title}\n${f.description}`,
+    });
+    res.json({ cta_text: text.trim().replace(/^["']|["'.]$/g, '') });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
 });
 
 // PATCH /api/features/:id/flags  { flags_override: string | null }
@@ -427,14 +453,7 @@ app.post('/api/newsletters/:month/generate', async (req, res) => {
     const label = fmtMonthLabel(month);
     const zipPath = await generateFromSelections(
       month,
-      selected.map(f => ({
-        id: f.id,
-        release_tag: f.release_tag,
-        product_area: f.product_area,
-        title: f.title,
-        description: f.description,
-        docs_url: f.docs_url,
-      })),
+      selected,
       { label, ...(previewText?.trim() ? { previewText: previewText.trim() } : {}) }
     );
     const filename = path.basename(zipPath);

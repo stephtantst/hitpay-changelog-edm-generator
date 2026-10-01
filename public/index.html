@@ -389,6 +389,13 @@
     white-space: nowrap;
     flex-shrink: 0;
   }
+  .cta-row { display: flex; align-items: center; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+  .cta-toggle { display: inline-flex; border: 1px solid #e8e8e8; border-radius: 5px; overflow: hidden; flex-shrink: 0; }
+  .cta-toggle button { background: #fff; border: none; padding: 3px 8px; font-size: 11px; color: #999; cursor: pointer; }
+  .cta-toggle button + button { border-left: 1px solid #e8e8e8; }
+  .cta-toggle button.active { background: #f0f0ff; color: #5B5BD6; font-weight: 600; }
+  .cta-input { max-width: 200px; }
+  .cta-preview { font-size: 11px; font-weight: 600; color: #fff; background: #2465DE; border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
   .docs-edit-btn:hover { border-color: #5B5BD6; color: #5B5BD6; background: #fafaff; }
   .docs-input-wrap { display: flex; align-items: center; gap: 4px; flex: 1; min-width: 0; }
   .docs-input {
@@ -1779,7 +1786,78 @@ function docsRowHtml(f) {
            <button class="docs-clear-btn" title="Remove docs link" onclick="event.stopPropagation(); clearDocsUrl(${f.id})">✕</button>`
         : `<span class="docs-no-link" onclick="event.stopPropagation(); showDocsInput(${f.id}, '')">+ Add docs link</span>`
       }
+    </div>
+    ${url ? ctaRowHtml(f) : ''}`;
+}
+
+// CTA: no cta_text = "Learn more →" text link; cta_text set = button with that label (both link to the docs URL)
+function ctaRowHtml(f) {
+  const custom = !!f.cta_text || ctaEditing.has(f.id);
+  return `
+    <div class="cta-row" id="cta-row-${f.id}" onclick="event.stopPropagation()">
+      <div class="cta-toggle">
+        <button class="${custom ? '' : 'active'}" onclick="setCtaMode(${f.id}, 'learn')">Learn more</button>
+        <button class="${custom ? 'active' : ''}" onclick="setCtaMode(${f.id}, 'custom')">Custom CTA</button>
+      </div>
+      ${custom ? `
+        <input class="docs-input cta-input" id="cta-input-${f.id}" type="text" maxlength="40" value="${escHtml(f.cta_text || '')}" placeholder="e.g. Set up admin fees" onkeydown="if(event.key==='Enter') saveCta(${f.id})" />
+        <button class="docs-edit-btn" title="Suggest an action-oriented CTA" onclick="suggestCta(${f.id})">✨ Suggest</button>
+        <button class="docs-save-btn" onclick="saveCta(${f.id})">Save</button>
+        ${f.cta_text ? `<span class="cta-preview">${escHtml(f.cta_text)}</span>` : ''}` : ''}
     </div>`;
+}
+
+const ctaEditing = new Set();
+
+async function setCtaMode(id, mode) {
+  if (mode === 'custom') {
+    ctaEditing.add(id);
+    rerenderCurrentPanel();
+    setTimeout(() => document.getElementById(`cta-input-${id}`)?.focus(), 0);
+    return;
+  }
+  ctaEditing.delete(id);
+  await persistCta(id, null, 'Switched to Learn more');
+}
+
+async function saveCta(id) {
+  const text = (document.getElementById(`cta-input-${id}`)?.value || '').trim();
+  if (!text) { showToast('Type a CTA, or switch back to Learn more', 'error'); return; }
+  await persistCta(id, text, 'CTA saved');
+}
+
+async function persistCta(id, text, msg) {
+  try {
+    await apiFetch(`/api/features/${id}/cta`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cta_text: text }),
+    });
+  } catch (err) {
+    showToast(`CTA not saved: ${err.message}`, 'error');
+    return;
+  }
+  [allFeatures, nlFeatures].forEach(arr => {
+    const f = arr.find(x => x.id === id);
+    if (f) f.cta_text = text;
+  });
+  if (text) ctaEditing.delete(id);
+  rerenderCurrentPanel();
+  showToast(msg, 'success');
+}
+
+async function suggestCta(id) {
+  const input = document.getElementById(`cta-input-${id}`);
+  if (input) { input.value = ''; input.placeholder = 'Thinking…'; }
+  try {
+    const res = await apiFetch(`/api/features/${id}/suggest-cta`, { method: 'POST' });
+    const { cta_text } = await res.json();
+    if (input) { input.value = cta_text; input.focus(); }
+  } catch (err) {
+    showToast(`Couldn't suggest a CTA: ${err.message}`, 'error');
+  } finally {
+    if (input) input.placeholder = 'e.g. Set up admin fees';
+  }
 }
 
 function showDocsInput(id, currentUrl) {

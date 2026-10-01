@@ -87,13 +87,16 @@
         <mj-text font-size="11px" font-weight="600" color="#2465DE" padding="0 0 6px 0" letter-spacing="0.4px">{{tag}}{{#if flags}} &nbsp;{{flags}}{{/if}}</mj-text>
         <mj-text font-size="17px" font-weight="700" padding="0 0 8px 0">{{title}}</mj-text>
         <mj-text color="#444444" padding="0 0 12px 0">{{description}}</mj-text>
-        {{#if docsUrl}}
+        {{#if docsUrl}}{{#unless ctaText}}
         <mj-text align="right" padding="0 0 16px 0">
           <a href="{{docsUrl}}" style="color:#2465DE;font-weight:600;text-decoration:none;font-size:14px;">Learn more →</a>
         </mj-text>
-        {{/if}}
+        {{/unless}}{{/if}}
         {{#if mockupImage}}
         <mj-image src="{{mockupImage}}" border-radius="10px" padding="0" fluid-on-mobile="true" alt="{{title}}" />
+        {{/if}}
+        {{#if ctaText}}
+        <mj-button href="{{docsUrl}}" align="right" background-color="#2465DE" color="#ffffff" font-size="15px" font-weight="600" border-radius="999px" inner-padding="12px 24px" padding="{{#if mockupImage}}20px{{else}}4px{{/if}} 0 4px 0">{{ctaText}}</mj-button>
         {{/if}}
       </mj-column>
     </mj-section>

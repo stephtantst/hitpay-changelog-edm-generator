@@ -21,6 +21,7 @@ interface SelectedFeature {
   description: string;
   docs_url?: string | null;
   flags_override?: string | null;
+  cta_text?: string | null;
 }
 
 const SCREENSHOTS_DIR = path.join(__dirname, '../screenshots');
@@ -175,6 +176,7 @@ export async function generateFromSelections(
       description: f.description,
       ...(flags ? { flags } : {}),
       ...(docsUrl ? { docsUrl } : {}),
+      ...(docsUrl && f.cta_text?.trim() ? { ctaText: f.cta_text.trim() } : {}),
     };
   });
 

@@ -35,6 +35,7 @@ try { db.exec(`ALTER TABLE features ADD COLUMN flags_override TEXT`); } catch { 
 try { db.exec(`ALTER TABLE releases ADD COLUMN is_hidden INTEGER NOT NULL DEFAULT 0`); } catch { /* already exists */ }
 try { db.exec(`ALTER TABLE releases ADD COLUMN repo TEXT NOT NULL DEFAULT 'hitpay-core'`); } catch { /* already exists */ }
 try { db.exec(`ALTER TABLE features ADD COLUMN platform TEXT NOT NULL DEFAULT 'web'`); } catch { /* already exists */ }
+try { db.exec(`ALTER TABLE features ADD COLUMN cta_text TEXT`); } catch { /* already exists */ }
 
 // Pseudo-release satisfying the FK for manually-added features (not tied to a GitHub release)
 db.prepare(`
@@ -58,6 +59,7 @@ export interface Feature {
   newsletter_priority: number;
   flags_override: string | null;
   platform: string;
+  cta_text: string | null;
 }
 
 export interface Release {

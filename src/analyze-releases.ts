@@ -49,7 +49,7 @@ function parsePRs(body: string): string[] {
 async function analyzeFeatures(tag: string, date: string, prs: string[]): Promise<AnalyzedFeature[]> {
   const text = await callOpenRouter({
     model: 'anthropic/claude-sonnet-4.5',
-    maxTokens: 4096,
+    maxTokens: 16000,
     system: `You are a product analyst for HitPay, a payment platform for SME merchants in Southeast Asia.
 Extract ALL potentially merchant-facing changes from GitHub PR titles.
 Skip purely internal items (refactors, CI, config, version bumps, code style).
