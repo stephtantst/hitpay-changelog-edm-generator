@@ -4,17 +4,22 @@
   "description": "Automated changelog EDM generator for HitPay merchant emails",
   "main": "dist/index.js",
   "scripts": {
+    "setup": "npm install && node -e \"require('fs').existsSync('.env')||require('fs').copyFileSync('.env.example','.env')\" && npm run doctor",
+    "doctor": "ts-node src/doctor.ts",
     "build": "tsc",
     "generate": "ts-node src/index.ts",
     "generate:tag": "ts-node src/generate-for-tag.ts",
     "mockup": "ts-node src/mockup-generator.ts",
     "preview": "ts-node src/index.ts --dry-run",
     "analyze": "ts-node src/analyze-releases.ts",
+    "analyze:new": "ts-node src/analyze-releases.ts --new",
     "analyze:android": "ts-node src/analyze-releases.ts --repo=android",
     "analyze:ios": "ts-node src/analyze-releases.ts --repo=ios",
     "enrich": "ts-node src/enrich-descriptions.ts",
     "server": "ts-node src/server.ts",
-    "save": "git add data/edm.db && git commit -m 'db: save' && git push"
+    "save": "git add data/edm.db && git commit -m 'db: save' && git push",
+    "schedule:install": "ts-node src/install-weekly-pull.ts",
+    "schedule:uninstall": "ts-node src/install-weekly-pull.ts --uninstall"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.36.0",
@@ -37,5 +42,8 @@
     "@types/node": "^20.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

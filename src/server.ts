@@ -227,21 +227,36 @@ app.patch('/api/features/:id/cta', (req, res) => {
   res.json({ ok: true });
 });
 
+async function suggestCtaText(title: string, description: string): Promise<string> {
+  const text = await callOpenRouter({
+    model: 'anthropic/claude-sonnet-4.5',
+    maxTokens: 50,
+    system: `You write CTA button labels for HitPay's merchant changelog email.
+Labels are 2-4 words, action-oriented, start with a verb, sentence case, and specific to the feature
+(e.g. "Create your invite", "Explore Health", "Set up admin fees", "Try PayNow QR").
+Never use "Learn more", "Click here", or trailing punctuation. Reply with the label only.`,
+    user: `Feature: ${title}\n${description}`,
+  });
+  return text.trim().replace(/^["']|["'.]$/g, '');
+}
+
 // POST /api/features/:id/suggest-cta  → { cta_text: string }  (not saved; UI pre-fills the input)
 app.post('/api/features/:id/suggest-cta', async (req, res) => {
   const f = queries.getFeatureById.get(Number(req.params.id)) as Feature | undefined;
   if (!f) { res.status(404).json({ error: 'Feature not found' }); return; }
   try {
-    const text = await callOpenRouter({
-      model: 'anthropic/claude-sonnet-4.5',
-      maxTokens: 50,
-      system: `You write CTA button labels for HitPay's merchant changelog email.
-Labels are 2-4 words, action-oriented, start with a verb, sentence case, and specific to the feature
-(e.g. "Create your invite", "Explore Health", "Set up admin fees", "Try PayNow QR").
-Never use "Learn more", "Click here", or trailing punctuation. Reply with the label only.`,
-      user: `Feature: ${f.title}\n${f.description}`,
-    });
-    res.json({ cta_text: text.trim().replace(/^["']|["'.]$/g, '') });
+    res.json({ cta_text: await suggestCtaText(f.title, f.description) });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+// POST /api/suggest-cta  { title, description }  → { cta_text }  — for features not saved yet (Add feature form)
+app.post('/api/suggest-cta', async (req, res) => {
+  const { title, description } = req.body as { title?: string; description?: string };
+  if (!title?.trim()) { res.status(400).json({ error: 'title is required' }); return; }
+  try {
+    res.json({ cta_text: await suggestCtaText(title.trim(), description?.trim() || '') });
   } catch (err) {
     res.status(500).json({ error: (err as Error).message });
   }
@@ -378,6 +393,17 @@ app.get('/api/newsletters', (_req, res) => {
   res.json(queries.getNewsletterMonths.all());
 });
 
+// POST /api/newsletters  { month: 'YYYY-MM' }  → creates an empty monthly changelog (no-op if it exists)
+app.post('/api/newsletters', (req, res) => {
+  const { month } = req.body as { month?: string };
+  if (!month || !/^\d{4}-\d{2}$/.test(month)) {
+    res.status(400).json({ error: 'month must be YYYY-MM' });
+    return;
+  }
+  queries.createNewsletter.run(month, new Date().toISOString());
+  res.json({ ok: true, month });
+});
+
 // GET /api/newsletters/:month/features
 app.get('/api/newsletters/:month/features', (req, res) => {
   const { month } = req.params;
@@ -392,7 +418,10 @@ app.get('/api/newsletters/:month/features', (req, res) => {
 // POST /api/newsletters/:month/features  { product_area, title, description, platform }
 app.post('/api/newsletters/:month/features', (req, res) => {
   const { month } = req.params;
-  const { product_area, title, description, platform } = req.body as { product_area: string; title: string; description: string; platform?: string };
+  const { product_area, title, description, platform, docs_url, flags_override, cta_text } = req.body as {
+    product_area: string; title: string; description: string; platform?: string;
+    docs_url?: string | null; flags_override?: string | null; cta_text?: string | null;
+  };
   if (!product_area?.trim() || !title?.trim() || !description?.trim()) {
     res.status(400).json({ error: 'product_area, title, and description are required' });
     return;
@@ -407,6 +436,14 @@ app.post('/api/newsletters/:month/features', (req, res) => {
     newsletter_priority: max_priority + 10,
     platform: platform?.trim() || 'web',
   });
+
+  // Same semantics as the per-field PATCH endpoints: null = auto-detect / default "Learn more"
+  db.prepare('UPDATE features SET docs_url = ?, flags_override = ?, cta_text = ? WHERE id = ?').run(
+    docs_url?.trim() || null,
+    flags_override ?? null,
+    cta_text?.trim() || null,
+    info.lastInsertRowid
+  );
 
   const feature = queries.getFeatureById.get(info.lastInsertRowid) as Feature;
   res.json({ ok: true, feature: { ...feature, has_image: false } });

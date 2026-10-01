@@ -37,6 +37,9 @@ try { db.exec(`ALTER TABLE releases ADD COLUMN repo TEXT NOT NULL DEFAULT 'hitpa
 try { db.exec(`ALTER TABLE features ADD COLUMN platform TEXT NOT NULL DEFAULT 'web'`); } catch { /* already exists */ }
 try { db.exec(`ALTER TABLE features ADD COLUMN cta_text TEXT`); } catch { /* already exists */ }
 
+// Months created from the UI before any feature is assigned (otherwise a month only exists via features.newsletter_month)
+db.exec(`CREATE TABLE IF NOT EXISTS newsletters (month TEXT PRIMARY KEY, created_at TEXT NOT NULL)`);
+
 // Pseudo-release satisfying the FK for manually-added features (not tied to a GitHub release)
 db.prepare(`
   INSERT OR IGNORE INTO releases (tag, published_at, analyzed_at, is_hidden)
@@ -165,13 +168,19 @@ export const queries = {
   // Newsletter queries
   getNewsletterMonths: db.prepare(`
     SELECT
-      newsletter_month,
-      COUNT(*) as feature_count
-    FROM features
-    WHERE newsletter_month IS NOT NULL
-    GROUP BY newsletter_month
-    ORDER BY newsletter_month DESC
+      m.newsletter_month,
+      COUNT(f.id) as feature_count
+    FROM (
+      SELECT newsletter_month FROM features WHERE newsletter_month IS NOT NULL
+      UNION
+      SELECT month FROM newsletters
+    ) m
+    LEFT JOIN features f ON f.newsletter_month = m.newsletter_month
+    GROUP BY m.newsletter_month
+    ORDER BY m.newsletter_month DESC
   `),
+
+  createNewsletter: db.prepare(`INSERT OR IGNORE INTO newsletters (month, created_at) VALUES (?, ?)`),
 
   getFeaturesByNewsletterMonth: db.prepare(`
     SELECT * FROM features

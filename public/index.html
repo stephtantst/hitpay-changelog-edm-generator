@@ -748,19 +748,57 @@
   .new-newsletter-form .btn-confirm { background: #5B5BD6; color: white; border-color: #5B5BD6; }
   .new-newsletter-form .btn-cancel { background: none; border-color: #d5d5d5; color: #888; }
 
+  /* ── Releases info tooltip ── */
+  .info-icon { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; margin-left: 6px; border-radius: 50%; border: 1px solid #bbb; color: #999; font-size: 10px; font-weight: 700; font-style: italic; font-family: Georgia, serif; cursor: help; flex-shrink: 0; }
+  .info-icon:hover, .info-icon:focus { border-color: #5B5BD6; color: #5B5BD6; outline: none; }
+  .info-tip { display: none; position: fixed; width: 250px; padding: 10px 12px; background: #1a1a1a; color: #eee; font: 400 12px/1.5 -apple-system, Inter, Arial, sans-serif; font-style: normal; border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,0.2); z-index: 300; text-transform: none; letter-spacing: 0; cursor: default; }
+  .info-tip strong { color: #fff; }
+  .info-tip code { background: rgba(255,255,255,0.12); padding: 1px 4px; border-radius: 3px; font-size: 11px; }
+  .info-icon:hover .info-tip, .info-icon:focus .info-tip, .info-icon:focus-within .info-tip { display: block; }
+
+  /* ── Add feature form ── */
+  .add-feature-card { border: 1.5px dashed #5B5BD6 !important; background: #fafaff; cursor: default; }
+  .add-feature-card .feature-body { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+  .af-title-row { font-size: 13px; font-weight: 700; color: #5B5BD6; }
+  .af-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .af-field { display: flex; flex-direction: column; gap: 4px; }
+  .af-label { font-size: 11px; font-weight: 600; color: #666; }
+  .af-label em { color: #ef4444; font-style: normal; }
+  .af-hint { font-weight: 400; color: #aaa; margin-left: 4px; }
+  .af-input { width: 100%; box-sizing: border-box; font-size: 13px; padding: 6px 8px; border: 1px solid #d5d5d5; border-radius: 6px; outline: none; font-family: inherit; background: #fff; }
+  .af-input:focus { border-color: #5B5BD6; }
+  .af-title { font-size: 14px; font-weight: 600; }
+  .af-flags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .af-flag { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; padding: 3px 8px; border: 1px solid #e0e0e0; border-radius: 999px; background: #fff; cursor: pointer; user-select: none; }
+  .af-flag input { accent-color: #5B5BD6; margin: 0; }
+  .af-flag:has(input:checked) { border-color: #5B5BD6; background: #f0f0ff; color: #5B5BD6; }
+  .af-img-drop { position: relative; border: 1.5px dashed #d5d5d5; border-radius: 8px; padding: 18px; text-align: center; font-size: 12px; color: #aaa; cursor: pointer; background: #fff; }
+  .af-img-drop.drag-over { border-color: #5B5BD6; background: #f0f0ff; }
+  .af-img-drop.has-image { padding: 6px; }
+  .af-img-drop.has-image:hover .drop-remove { opacity: 1; }
+  .af-img-drop img { max-height: 160px; max-width: 100%; border-radius: 6px; display: block; margin: 0 auto; }
+
   /* ── Assign to newsletter dropdown ── */
+  /* Hide at top-right, changelog CTA pinned to bottom-right of the card */
+  .feature-card { align-items: stretch; }
+  .feature-card > input[type=checkbox], .feature-card > .feature-img-drop { align-self: flex-start; }
+  .feature-actions { align-items: flex-end; justify-content: space-between; gap: 8px; }
+  .assign-slot { margin-top: auto; }
   .assign-btn {
-    background: none;
-    border: 1px solid #e8e8e8;
-    border-radius: 4px;
-    padding: 2px 6px;
-    font-size: 10px;
-    color: #bbb;
+    background: #5B5BD6;
+    border: 1px solid #5B5BD6;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
     cursor: pointer;
     transition: all 0.1s;
     white-space: nowrap;
+    box-shadow: 0 1px 2px rgba(91,91,214,0.25);
   }
-  .assign-btn:hover { border-color: #5B5BD6; color: #5B5BD6; background: #fafaff; }
+  .assign-btn:hover { background: #4a4ac4; border-color: #4a4ac4; }
+  .feature-actions .assign-pill { font-size: 12px; padding: 5px 10px; border-radius: 6px; }
   .assign-dropdown {
     display: none;
     position: absolute;
@@ -862,19 +900,27 @@
     align-items: center;
     gap: 2px;
   }
-  .flag-edit-btn {
-    background: none;
-    border: none;
-    padding: 0 3px;
+  .flag-chip {
+    display: inline-flex;
+    align-items: center;
+    background: #f0f0ff;
+    border: 1px solid #d8d8f5;
+    border-radius: 5px;
+    padding: 2px 7px;
     font-size: 10px;
-    color: #ccc;
+    font-weight: 700;
+    color: #5B5BD6;
+    letter-spacing: 0.3px;
     cursor: pointer;
-    line-height: 1;
-    transition: color 0.1s;
-    vertical-align: middle;
+    line-height: 1.4;
+    white-space: nowrap;
+    transition: all 0.1s;
   }
-  .flag-edit-btn:hover { color: #5B5BD6; }
-  .flag-edit-btn.has-override { color: #5B5BD6; }
+  .flag-chip:hover { border-color: #5B5BD6; background: #e4e4fc; }
+  .flag-chip.is-empty { background: #fff; border-style: dashed; color: #8b8bd9; }
+  .flag-chip.is-empty:hover { color: #5B5BD6; border-color: #5B5BD6; }
+  .flag-chip .flag-pill { margin-left: 0; margin-right: 3px; }
+  .flag-chip-caret { font-size: 8px; margin-left: 2px; }
   .flag-popover {
     display: none;
     position: absolute;
@@ -948,9 +994,30 @@
 
 <div class="layout">
   <aside>
+    <div class="sidebar-section-header" onclick="toggleSidebarSection('changelog')">
+      <span class="group-chevron open" id="sec-chev-changelog">&#9654;</span>
+      <h2>Monthly Changelog</h2>
+    </div>
+    <div id="changelog-section-body" class="sidebar-section-body">
+      <div id="newsletter-list"><div class="loading">Loading...</div></div>
+      <div id="new-newsletter-slot">
+        <button class="new-newsletter-btn" onclick="showNewNewsletterForm()">+ Create Monthly Changelog</button>
+      </div>
+    </div>
+
     <div class="sidebar-section-header" onclick="toggleSidebarSection('releases')">
       <span class="group-chevron open" id="sec-chev-releases">&#9654;</span>
       <h2>Releases</h2>
+      <span class="info-icon" tabindex="0" onclick="event.stopPropagation()" onmouseenter="placeInfoTip(this)" onfocus="placeInfoTip(this)" aria-label="How releases get updated">i
+        <span class="info-tip">
+          <strong>Releases don't update on their own.</strong>
+          They're pulled from GitHub (<code>hit-pay/hitpay-core</code>), so new releases only appear after a re-pull.
+          <br><br>New releases are pulled automatically every <strong>Monday 9am</strong> (if your Mac was asleep, it runs when it wakes). Refresh this page to see them.
+          <br><br>To pull right now, run <code>npm run analyze:new</code> in the repo (or ask Claude to "pull the latest releases"), then refresh.
+          It only adds releases that aren't here yet, so existing curation is never touched.
+          <br><br><span id="releases-last-pulled"></span>
+        </span>
+      </span>
     </div>
     <div id="releases-section-body" class="sidebar-section-body">
       <div style="display:flex;gap:4px;padding:8px 12px 4px;">
@@ -959,14 +1026,6 @@
         <button class="btn btn-ghost" id="rel-filter-mobile" onclick="setReleasePlatformFilter('mobile')" style="padding:2px 8px;font-size:12px;">📱 Mobile</button>
       </div>
       <div id="release-list"><div class="loading">Loading...</div></div>
-    </div>
-
-    <div class="sidebar-section-header" onclick="toggleSidebarSection('changelog')">
-      <span class="group-chevron open" id="sec-chev-changelog">&#9654;</span>
-      <h2>Monthly Changelog</h2>
-    </div>
-    <div id="changelog-section-body" class="sidebar-section-body">
-      <div id="newsletter-list"><div class="loading">Loading...</div></div>
     </div>
   </aside>
 
@@ -1100,10 +1159,7 @@ function safeCountryKey(key) {
 function flagEditorHtml(f) {
   const isAuto = f.flags_override === null || f.flags_override === undefined;
   const effectiveKeys = effectiveFlagKeys(f);
-  const pillsHtml = effectiveKeys.map(k => {
-    const c = COUNTRY_LIST.find(x => x.key === k);
-    return c ? `<span class="flag-pill">${c.flag}</span>` : '';
-  }).join('');
+  const pillsHtml = flagChipInner(effectiveKeys);
 
   const checkboxes = COUNTRY_LIST.map(c => {
     const ck = safeCountryKey(c.key);
@@ -1119,8 +1175,9 @@ function flagEditorHtml(f) {
 
   return `
     <div class="flag-editor-wrap" onclick="event.stopPropagation()">
-      <span id="flag-pills-${f.id}">${pillsHtml}</span>
-      <button class="flag-edit-btn${isAuto ? '' : ' has-override'}" onclick="event.stopPropagation();toggleFlagPopover(${f.id})" title="Edit country flags">✏</button>
+      <button class="flag-chip${isAuto ? '' : ' has-override'}${effectiveKeys.length ? '' : ' is-empty'}" onclick="event.stopPropagation();toggleFlagPopover(${f.id})" title="Country flags shown next to this feature in the email">
+        <span id="flag-pills-${f.id}">${pillsHtml}</span>
+      </button>
       <div class="flag-popover" id="flag-pop-${f.id}" onclick="event.stopPropagation()">
         <div class="flag-popover-header">
           Country flags
@@ -1141,13 +1198,18 @@ function toggleFlagPopover(id) {
   if (!isOpen) pop.style.display = 'block';
 }
 
+function flagChipInner(keys) {
+  const flags = keys.map(k => COUNTRY_LIST.find(x => x.key === k)?.flag).filter(Boolean);
+  return flags.length
+    ? `${flags.map(fl => `<span class="flag-pill">${fl}</span>`).join('')}<span class="flag-chip-caret">▾</span>`
+    : `🏳 Add country flags <span class="flag-chip-caret">▾</span>`;
+}
+
 function updateFlagPills(id, keys) {
   const container = document.getElementById(`flag-pills-${id}`);
   if (!container) return;
-  container.innerHTML = keys.map(k => {
-    const c = COUNTRY_LIST.find(x => x.key === k);
-    return c ? `<span class="flag-pill">${c.flag}</span>` : '';
-  }).join('');
+  container.innerHTML = flagChipInner(keys);
+  container.closest('.flag-chip')?.classList.toggle('is-empty', keys.length === 0);
 }
 
 async function toggleFlagKey(id, key, checked) {
@@ -1473,6 +1535,11 @@ function renderFeatures() {
 async function loadReleases() {
   const res = await fetch('/api/releases');
   allReleases = await res.json();
+  const lastPulled = allReleases.map(r => r.analyzed_at).filter(Boolean).sort().pop();
+  const lp = document.getElementById('releases-last-pulled');
+  if (lp) lp.textContent = lastPulled
+    ? `Last pulled: ${new Date(lastPulled).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}`
+    : '';
   renderReleaseList();
 }
 
@@ -1946,9 +2013,9 @@ function featureCard(f) {
         ${imgZoneInner}
         <input type="file" id="imgfile-${f.id}" accept="image/*" style="display:none" onchange="handleImageFile(event,${f.id})" />
       </div>
-      <div class="feature-priority">
-        ${assignBtnHtml(f)}
+      <div class="feature-priority feature-actions">
         <button class="hide-btn" onclick="event.stopPropagation(); hideFeature(${f.id})">Hide</button>
+        <div class="assign-slot">${assignBtnHtml(f)}</div>
       </div>
     </div>
   `;
@@ -2056,9 +2123,9 @@ function selectedFeatureCard(f, i) {
         ${imgZoneInner}
         <input type="file" id="imgfile-${f.id}" accept="image/*" style="display:none" onchange="handleImageFile(event,${f.id})" />
       </div>
-      <div class="feature-priority">
-        ${assignBtnHtml(f)}
+      <div class="feature-priority feature-actions">
         <button class="hide-btn" onclick="event.stopPropagation(); hideFeature(${f.id})">Hide</button>
+        <div class="assign-slot">${assignBtnHtml(f)}</div>
       </div>
     </div>
   `;
@@ -2468,7 +2535,7 @@ async function loadNewsletters() {
 function renderNewsletterSidebarList() {
   const el = document.getElementById('newsletter-list');
   if (!allNewsletters.length) {
-    el.innerHTML = '<div style="padding:12px 16px;font-size:13px;color:#aaa;">No changelogs yet.<br>Assign features to a month from a Release.</div>';
+    el.innerHTML = '<div style="padding:12px 16px;font-size:13px;color:#aaa;">No changelogs yet.<br>Create one below, or assign features to a month from a Release.</div>';
     return;
   }
   el.innerHTML = allNewsletters.map(n => `
@@ -2480,6 +2547,54 @@ function renderNewsletterSidebarList() {
       <span class="release-badge ${n.feature_count === 0 ? 'zero' : ''}">${n.feature_count}</span>
     </div>
   `).join('');
+}
+
+// Fixed-position so the sidebar's overflow doesn't clip the tooltip
+function placeInfoTip(icon) {
+  const r = icon.getBoundingClientRect();
+  const tip = icon.querySelector('.info-tip');
+  tip.style.left = `${r.left}px`;
+  tip.style.top = `${r.bottom + 6}px`;
+}
+
+function showNewNewsletterForm() {
+  const slot = document.getElementById('new-newsletter-slot');
+  const now = new Date();
+  const defaultMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  slot.innerHTML = `
+    <div class="new-newsletter-form">
+      <input type="month" id="new-newsletter-month" value="${defaultMonth}" onkeydown="if(event.key==='Enter') createNewsletter(); if(event.key==='Escape') hideNewNewsletterForm()" />
+      <button class="btn-confirm" onclick="createNewsletter()">Create</button>
+      <button class="btn-cancel" onclick="hideNewNewsletterForm()">Cancel</button>
+    </div>`;
+  setTimeout(() => document.getElementById('new-newsletter-month')?.focus(), 0);
+}
+
+function hideNewNewsletterForm() {
+  document.getElementById('new-newsletter-slot').innerHTML =
+    `<button class="new-newsletter-btn" onclick="showNewNewsletterForm()">+ Create Monthly Changelog</button>`;
+}
+
+async function createNewsletter() {
+  const month = document.getElementById('new-newsletter-month')?.value;
+  if (!month) { showToast('Pick a month first', 'error'); return; }
+  const exists = allNewsletters.some(n => n.newsletter_month === month);
+  if (!exists) {
+    try {
+      await apiFetch('/api/newsletters', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ month }),
+      });
+    } catch (err) {
+      showToast(`Changelog not created: ${err.message}`, 'error');
+      return;
+    }
+    await loadNewsletters();
+  }
+  hideNewNewsletterForm();
+  await loadNewsletter(month);
+  showToast(exists ? `${fmtMonthLabel(month)} already exists — opened it` : `Created ${fmtMonthLabel(month)}`, 'success');
 }
 
 // ── Newsletter main panel ─────────────────────────────
@@ -2558,17 +2673,55 @@ function addFeatureFormHtml() {
   const platformOptions = Object.entries(PLATFORM_BADGE).map(([value, label]) =>
     `<option value="${value}" ${value === defaultPlatform ? 'selected' : ''}>${label}</option>`
   ).join('');
+  const flagChips = COUNTRY_LIST.map(c => `
+    <label class="af-flag"><input type="checkbox" value="${escHtml(c.key)}" class="add-feat-flag" />${c.flag} ${escHtml(c.label)}</label>`).join('');
   return `
-    <div class="feature-card" id="add-feature-card" style="border:1px dashed #5B5BD6;background:#fafaff;">
+    <div class="feature-card add-feature-card" id="add-feature-card" onclick="event.stopPropagation()">
       <div class="feature-body">
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
-          <select class="category-select" id="add-feat-category">${catOptions}</select>
-          <select class="category-select" id="add-feat-platform">${platformOptions}</select>
+        <div class="af-title-row">New changelog item</div>
+
+        <div class="af-grid">
+          <label class="af-field"><span class="af-label">Category</span>
+            <select class="af-input" id="add-feat-category">${catOptions}</select></label>
+          <label class="af-field"><span class="af-label">Platform</span>
+            <select class="af-input" id="add-feat-platform">${platformOptions}</select></label>
         </div>
-        <input type="text" id="add-feat-title" placeholder="Feature title" maxlength="120"
-          style="width:100%;box-sizing:border-box;font-size:14px;font-weight:600;padding:6px 8px;border:1px solid #d5d5d5;border-radius:6px;margin-bottom:6px;outline:none;font-family:inherit;" />
-        <textarea id="add-feat-desc" placeholder="Description (merchant-facing, &quot;We&quot; voice)" class="desc-textarea" style="width:100%;box-sizing:border-box;display:block;"></textarea>
-        <div style="display:flex;gap:8px;margin-top:8px;">
+
+        <label class="af-field"><span class="af-label">Title <em>*</em></span>
+          <input class="af-input af-title" type="text" id="add-feat-title" placeholder="e.g. Admin fees on payment links" maxlength="120" /></label>
+
+        <label class="af-field"><span class="af-label">Description <em>*</em></span>
+          <textarea class="af-input desc-textarea" id="add-feat-desc" placeholder="Merchant-facing, &quot;We&quot; voice — 1–2 sentences on the benefit"></textarea></label>
+
+        <div class="af-field"><span class="af-label">Country flags <span class="af-hint">Leave empty to auto-detect from the text</span></span>
+          <div class="af-flags">${flagChips}</div></div>
+
+        <label class="af-field"><span class="af-label">Docs link <span class="af-hint">Leave empty to auto-match from docs.hitpayapp.com</span></span>
+          <input class="af-input" type="url" id="add-feat-docs" placeholder="https://docs.hitpayapp.com/…" /></label>
+
+        <div class="af-field"><span class="af-label">Call to action</span>
+          <div class="cta-row" style="margin-top:0;">
+            <div class="cta-toggle">
+              <button type="button" id="add-feat-cta-learn" class="active" onclick="setAddFeatCtaMode('learn')">Learn more</button>
+              <button type="button" id="add-feat-cta-custom" onclick="setAddFeatCtaMode('custom')">Custom CTA</button>
+            </div>
+            <span id="add-feat-cta-custom-wrap" style="display:none;align-items:center;gap:6px;">
+              <input class="docs-input cta-input" id="add-feat-cta" type="text" maxlength="40" placeholder="e.g. Set up admin fees" />
+              <button type="button" class="docs-edit-btn" onclick="suggestAddFeatCta()">✨ Suggest</button>
+            </span>
+          </div></div>
+
+        <div class="af-field"><span class="af-label">Image</span>
+          <div class="af-img-drop" id="add-feat-img-drop"
+            ondragover="event.preventDefault();this.classList.add('drag-over')"
+            ondragleave="this.classList.remove('drag-over')"
+            ondrop="event.preventDefault();this.classList.remove('drag-over');setAddFeatImage(event.dataTransfer.files[0])"
+            onclick="document.getElementById('add-feat-img-file').click()">
+            <span id="add-feat-img-inner">Drop a screenshot or click to upload</span>
+            <input type="file" id="add-feat-img-file" accept="image/*" style="display:none" onchange="setAddFeatImage(this.files[0])" />
+          </div></div>
+
+        <div style="display:flex;gap:8px;margin-top:4px;">
           <button class="btn btn-success" onclick="submitAddFeature()">Add feature</button>
           <button class="btn btn-ghost" onclick="cancelAddFeatureForm()">Cancel</button>
         </div>
@@ -2577,13 +2730,64 @@ function addFeatureFormHtml() {
   `;
 }
 
+let addFeatImageFile = null;
+
+function setAddFeatCtaMode(mode) {
+  const custom = mode === 'custom';
+  document.getElementById('add-feat-cta-learn').classList.toggle('active', !custom);
+  document.getElementById('add-feat-cta-custom').classList.toggle('active', custom);
+  document.getElementById('add-feat-cta-custom-wrap').style.display = custom ? 'inline-flex' : 'none';
+  if (custom) document.getElementById('add-feat-cta').focus();
+}
+
+async function suggestAddFeatCta() {
+  const title = document.getElementById('add-feat-title').value.trim();
+  const description = document.getElementById('add-feat-desc').value.trim();
+  if (!title) { showToast('Add a title first so there is something to base the CTA on', 'error'); return; }
+  const input = document.getElementById('add-feat-cta');
+  input.value = ''; input.placeholder = 'Thinking…';
+  try {
+    const res = await apiFetch('/api/suggest-cta', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, description }),
+    });
+    input.value = (await res.json()).cta_text;
+    input.focus();
+  } catch (err) {
+    showToast(`Couldn't suggest a CTA: ${err.message}`, 'error');
+  } finally {
+    input.placeholder = 'e.g. Set up admin fees';
+  }
+}
+
+function setAddFeatImage(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  addFeatImageFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('add-feat-img-inner').innerHTML =
+      `<img src="${e.target.result}" alt="" /><button type="button" class="drop-remove" onclick="event.stopPropagation();clearAddFeatImage()" title="Remove">✕</button>`;
+    document.getElementById('add-feat-img-drop').classList.add('has-image');
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearAddFeatImage() {
+  addFeatImageFile = null;
+  document.getElementById('add-feat-img-inner').textContent = 'Drop a screenshot or click to upload';
+  document.getElementById('add-feat-img-drop').classList.remove('has-image');
+}
+
 function toggleAddFeatureForm() {
   addFeatureFormOpen = !addFeatureFormOpen;
+  addFeatImageFile = null;
   renderNewsletterPanel();
 }
 
 function cancelAddFeatureForm() {
   addFeatureFormOpen = false;
+  addFeatImageFile = null;
   renderNewsletterPanel();
 }
 
@@ -2592,6 +2796,11 @@ async function submitAddFeature() {
   const platform = document.getElementById('add-feat-platform')?.value || 'web';
   const title = document.getElementById('add-feat-title')?.value.trim();
   const description = document.getElementById('add-feat-desc')?.value.trim();
+  const docs_url = document.getElementById('add-feat-docs')?.value.trim() || null;
+  const flagKeys = [...document.querySelectorAll('.add-feat-flag:checked')].map(el => el.value);
+  const flags_override = flagKeys.length ? flagKeys.join(',') : null;
+  const customCta = document.getElementById('add-feat-cta-custom')?.classList.contains('active');
+  const cta_text = customCta ? (document.getElementById('add-feat-cta')?.value.trim() || null) : null;
   if (!title || !description) {
     showToast('Title and description are required', 'error');
     return;
@@ -2601,10 +2810,32 @@ async function submitAddFeature() {
     const res = await fetch(`/api/newsletters/${encodeURIComponent(currentNewsletter)}/features`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ product_area, title, description, platform }),
+      body: JSON.stringify({ product_area, title, description, platform, docs_url, flags_override, cta_text }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed to add feature');
+
+    if (addFeatImageFile) {
+      const dataUrl = await new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = e => resolve(e.target.result);
+        r.onerror = reject;
+        r.readAsDataURL(addFeatImageFile);
+      });
+      const resized = await resizeImageDataUrl(dataUrl, MAX_IMAGE_WIDTH);
+      const [header, b64] = resized.split(',');
+      try {
+        await apiFetch(`/api/features/${data.feature.id}/image`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ data: b64, mime: header.match(/:(.*?);/)[1] }),
+        });
+        data.feature.has_image = true;
+      } catch (err) {
+        showToast(`Feature added, but image upload failed: ${err.message}`, 'error');
+      }
+      addFeatImageFile = null;
+    }
 
     nlFeatures.push(data.feature);
     allFeatures.push(data.feature);
@@ -2815,7 +3046,7 @@ function assignBtnHtml(f) {
     }).join('');
   return `
     <div style="position:relative;">
-      <button class="assign-btn" onclick="event.stopPropagation();toggleAssignDropdown(${f.id})">+ Month ▾</button>
+      <button class="assign-btn" onclick="event.stopPropagation();toggleAssignDropdown(${f.id})">+ Add to Monthly Changelog</button>
       <div class="assign-dropdown" id="assign-drop-${f.id}">
         ${addOptions ? `<div class="assign-dropdown-label">Add to month</div>${addOptions}` : ''}
         <button class="assign-option" onclick="event.stopPropagation();showInlineMonthPicker(${f.id})">+ New month…</button>
@@ -2824,12 +3055,25 @@ function assignBtnHtml(f) {
     </div>`;
 }
 
+// Fixed-position menus would detach from their button on scroll — close them instead
+window.addEventListener('scroll', () => {
+  document.querySelectorAll('.assign-dropdown').forEach(d => d.style.display = 'none');
+}, true);
+
 function toggleAssignDropdown(featureId) {
   const drop = document.getElementById(`assign-drop-${featureId}`);
   if (!drop) return;
   const isOpen = drop.style.display === 'block';
   document.querySelectorAll('.assign-dropdown, .move-dropdown').forEach(d => d.style.display = 'none');
-  if (!isOpen) drop.style.display = 'block';
+  if (isOpen) return;
+  drop.style.display = 'block';
+  // Fixed positioning so the menu isn't clipped by the product group's overflow:hidden
+  const btn = drop.previousElementSibling.getBoundingClientRect();
+  const h = drop.offsetHeight;
+  drop.style.position = 'fixed';
+  drop.style.right = `${window.innerWidth - btn.right}px`;
+  drop.style.top = (btn.bottom + 4 + h <= window.innerHeight) ? `${btn.bottom + 4}px` : `${Math.max(8, btn.top - 4 - h)}px`;
+  drop.style.bottom = 'auto';
 }
 
 function showInlineMonthPicker(featureId) {

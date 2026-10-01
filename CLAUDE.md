@@ -28,12 +28,45 @@ never successfully completed a send — either the workflow's secrets were
 never configured, or it's been abandoned in favor of the manual monthly flow.
 Confirm with Steph before assuming this is live or touching it.
 
+## First-time setup ("run this on my local")
+
+When someone asks to run this on a fresh clone, do this in order:
+
+1. `node -v` must be 20+ (22 recommended; `.nvmrc` says 22). If it's older or
+   missing, tell them how to install it (e.g. `nvm install 22`). Don't guess.
+2. `npm run setup`: installs deps (including puppeteer's Chromium for mockups),
+   copies `.env.example` → `.env` if missing, then runs `npm run doctor`.
+3. Read the doctor output. For each missing key, ask the user for it. Don't
+   invent values, and don't print the key back. Write it into `.env` yourself.
+   - `GITHUB_TOKEN`: repo read access to `hit-pay/hitpay-core` (+ android/ios).
+     Needed to pull releases.
+   - `OPENROUTER_API_KEY`: needed for feature extraction, enrich, ✨ Suggest CTA.
+   - The other keys are only for the dormant automated pipeline. Leave the placeholders.
+   - The UI runs without any keys. If the user doesn't have a key yet, start the
+     server anyway and tell them which features stay off until they add it.
+4. Re-run `npm run doctor` until there are no ❌ (⚠️ only means a feature is limited).
+5. Start `npm run server` (background) and give them http://localhost:3001.
+   If port 3001 is taken, use `PORT=3002 npm run server`.
+6. Optional, macOS only: offer the weekly auto-pull. `npm run schedule:install`
+   prints a Full Disk Access step if the repo is under ~/Documents, ~/Desktop or
+   ~/Downloads. Relay it, and after they grant it, verify with
+   `launchctl kickstart gui/$(id -u)/com.hitpay.edm-weekly-pull` + the log.
+
+Known fresh-clone failure: `better-sqlite3` built for another Node version
+(the doctor flags it) → `npm rebuild better-sqlite3`.
+A fresh clone has no feature images (`screenshots/*/` is gitignored). That's expected, not a bug.
+
 ## Dev workflow
 
 ```
+npm run setup         # fresh clone: install + create .env + doctor
+npm run doctor        # setup check (node, deps, DB, Chromium, keys actually valid)
 npm run server        # web UI at localhost:3001 — the day-to-day tool
 npm run analyze        # ts-node src/analyze-releases.ts v83.0 v84.0 ...   (Web/hitpay-core, default)
                         #   or --all for the latest 10 major releases
+npm run analyze:new     # only hitpay-core releases newer than the latest in the DB —
+                        #   never re-analyzes (re-analyzing a tag DELETES its features
+                        #   and curation). This is what the weekly job runs.
 npm run analyze:android # same, but --repo=android (hitpay-android)
 npm run analyze:ios     # same, but --repo=ios (hitpay-ios)
 npm run enrich          # re-enrich descriptions from PR bodies via Claude
@@ -46,9 +79,17 @@ npx tsc --noEmit        # type-check (src/preview.ts has 3 pre-existing type
                         #   errors unrelated to any recent work — safe to ignore)
 ```
 
-Requires a `.env` (see `.env.example`): `GITHUB_TOKEN` (repo read scope on
-`hit-pay/hitpay-core`, `hit-pay/hitpay-android`, and `hit-pay/hitpay-ios`),
-`ANTHROPIC_API_KEY`, `LOOPS_API_KEY`, `LOOPS_TRANSACTIONAL_ID`, `DRY_RUN`.
+`.env` (see `.env.example`): the active pipeline needs only `GITHUB_TOKEN` and
+`OPENROUTER_API_KEY` (all Claude calls go through OpenRouter, `src/openrouter.ts`).
+`ANTHROPIC_API_KEY` / `LOOPS_*` / `DRY_RUN` are only read by the dormant pipeline.
+
+**Weekly auto-pull:** `npm run schedule:install` (`src/install-weekly-pull.ts`)
+writes a per-machine launchd agent (`~/Library/LaunchAgents/com.hitpay.edm-weekly-pull.plist`,
+outside the repo) that runs `analyze-releases.ts --new` every Monday 9am, logging to
+`~/Library/Logs/hitpay-edm-weekly-pull.log`. It invokes node directly because macOS
+TCC blocks background jobs from `~/Documents`, so node needs Full Disk Access. It does
+not commit; `npm run save` still backs up the DB. Re-run the install after moving
+the repo or changing Node versions (the paths are baked into the plist).
 
 The server auto-opens `http://localhost:3001` in a browser on start (macOS
 `open` command in `src/server.ts`).
@@ -80,6 +121,12 @@ The server auto-opens `http://localhost:3001` in a browser on start (macOS
     explicitly suppressed; anything else = manual override.
   - `flags_override` — `null` = auto-detect country flags; `""` = force none;
     `"singapore,malaysia"` = explicit list.
+  - `cta_text` — `null` = default right-aligned "Learn more →" text link;
+    anything else = a button with that label, placed after the image. Both
+    link to the resolved docs URL, so no docs URL = no CTA at all.
+- **`newsletters`**: just `month` (`YYYY-MM`) — lets a Monthly Changelog exist
+  before any feature is assigned ("+ Create Monthly Changelog"). The month
+  list is the union of this table and `features.newsletter_month`.
 
 ## Known gotchas
 
@@ -98,7 +145,7 @@ The server auto-opens `http://localhost:3001` in a browser on start (macOS
   `resizeImageDataUrl()` in `public/index.html`. Don't remove this; full-res
   screenshots (some were 5000px+, multi-MB) make the email slow to load with
   no visible quality gain at the ~550px display width.
-- `screenshots/v*/` is gitignored — feature images are local-only, not backed
+- `screenshots/*/` is gitignored — feature images are local-only, not backed
   up by git. `data/edm.db` is tracked and pushed via `npm run save`.
 
 ## Architecture map

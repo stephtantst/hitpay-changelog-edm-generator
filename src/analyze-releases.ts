@@ -4,6 +4,8 @@
  *
  * Run: ts-node src/analyze-releases.ts v75.0 v76.0 v77.0 v78.0 v79.0
  * Or:  ts-node src/analyze-releases.ts --all   (fetches latest 10 major releases)
+ * Or:  ts-node src/analyze-releases.ts --new   (only releases not yet in the DB — safe for cron,
+ *      never re-analyzes, so existing curation is untouched)
  * Add --repo=android or --repo=ios to pull from a mobile repo instead of hitpay-core (default).
  */
 import dotenv from 'dotenv';
@@ -127,10 +129,16 @@ async function main() {
   }
   const repoKey = repoArg;
 
-  const tags = args.includes('--all')
-    ? await fetchLatestMajorTags(10, repoKey)
-    : args.filter(a => /^v\d+\.\d+$/.test(a));
+  const tags = args.includes('--new')
+    ? await fetchUnanalyzedTags(repoKey)
+    : args.includes('--all')
+      ? await fetchLatestMajorTags(10, repoKey)
+      : args.filter(a => /^v\d+\.\d+$/.test(a));
 
+  if (tags.length === 0 && args.includes('--new')) {
+    console.log(`No new releases in ${REPOS[repoKey].repo}.`);
+    return;
+  }
   if (tags.length === 0) {
     console.error('Usage: ts-node src/analyze-releases.ts [--repo=web|android|ios] v75.0 v76.0 ...');
     process.exit(1);
@@ -141,6 +149,27 @@ async function main() {
     await analyzeTag(tag, repoKey);
   }
   console.log('\nDone. Run `npm run server` to open the selection UI.');
+}
+
+// Releases newer than the latest one already stored, oldest first. Only looks forward, so
+// old releases that were deliberately never ingested don't get pulled in.
+async function fetchUnanalyzedTags(repoKey: RepoKey): Promise<string[]> {
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) throw new Error('GITHUB_TOKEN required');
+  const { owner, repo } = REPOS[repoKey];
+  const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/releases?per_page=100`, {
+    headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' },
+  });
+  if (!res.ok) throw new Error(`GitHub error listing releases: ${res.status}`);
+  const releases = await res.json() as Array<{ tag_name: string; published_at: string; draft: boolean }>;
+  const latest = db.prepare(`SELECT MAX(published_at) as p FROM releases WHERE repo = ? AND tag != 'manual'`)
+    .get(repo) as { p: string | null };
+  return releases
+    .filter(r => !r.draft && /^v\d+\.\d+$/.test(r.tag_name))
+    .filter(r => !queries.releaseExists.get(storedTag(repoKey, r.tag_name)))
+    .filter(r => !latest.p || r.published_at > latest.p)
+    .sort((a, b) => a.published_at.localeCompare(b.published_at))
+    .map(r => r.tag_name);
 }
 
 async function fetchLatestMajorTags(limit: number, repoKey: RepoKey): Promise<string[]> {

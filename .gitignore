@@ -3,4 +3,5 @@ dist/
 output/
 .env
 *.local
-screenshots/v*/
+screenshots/*/
+.DS_Store
